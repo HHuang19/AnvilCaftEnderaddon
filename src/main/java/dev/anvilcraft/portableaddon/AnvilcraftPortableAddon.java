@@ -57,6 +57,7 @@ public class AnvilcraftPortableAddon {
         if (event.getTabKey() == AddonItemGroups.ADDON_TAB.getKey()) {
             event.accept(AddonItems.Magnet);
             event.accept(AddonItems.POWER_BLOCK_ITEM);
+            event.accept(AddonItems.ENDERPOLE_ITEM);
 
             // 雷跃附魔书（可附魔在靴子上，实现二段跳）
             var holders = event.getParameters().holders();

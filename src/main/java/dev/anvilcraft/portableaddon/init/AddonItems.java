@@ -1,28 +1,21 @@
 package dev.anvilcraft.portableaddon.init;
 
 import dev.anvilcraft.portableaddon.AnvilcraftPortableAddon;
-import dev.anvilcraft.portableaddon.init.blocks.ender_transmission_pole.EnderPoleBlock;
-import dev.anvilcraft.portableaddon.init.blocks.ender_transmission_pole.EnderPoleBlockEntity;
-import dev.dubhe.anvilcraft.block.state.Vertical3PartHalf;
+import dev.anvilcraft.portableaddon.init.items.EnderPoleItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -102,53 +95,10 @@ public class AddonItems {
 
     // ==========================================
     // 2. 末影电线杆物品 (ENDERPOLE_ITEM)
-    // 核心行为：既是电线杆的放置物，同时也是多方块结构的跨维度无线连线配置工具
+    // 核心行为：正常放置方块，并负责跨维度绑定（右键已放置的杆记录/链接目标）
     // ==========================================
-    public static final DeferredItem<BlockItem> ENDERPOLE_ITEM =
-            ITEMS.register("enderpole", () -> new BlockItem(AddonBlocks.ENDERPOLE.get(), new Item.Properties()) {
-
-                @Override
-                public InteractionResult useOn(UseOnContext context) {
-                    // 连接配置行为：右键点击一个有效的电线杆方块实体
-                    if (context.getLevel().getBlockEntity(context.getClickedPos()) instanceof EnderPoleBlockEntity B_E) {
-                        ItemStack _This = context.getItemInHand();
-
-                        // 重定向逻辑：不论玩家点击了三格高电线杆的哪一格，自动寻找并定位到关键的“顶部段(TOP)”方块实体
-                        BlockEntity TState = switch (B_E.getBlockState().getValue(EnderPoleBlock.PARTHALF)){
-                            case Vertical3PartHalf.TOP -> context.getLevel().getBlockEntity(context.getClickedPos());
-                            case Vertical3PartHalf.MID -> context.getLevel().getBlockEntity(context.getClickedPos().above(1));
-                            case Vertical3PartHalf.BOTTOM -> context.getLevel().getBlockEntity(context.getClickedPos().above(2));
-                        };
-
-                        // 将顶部段的物理坐标 (BlockPos) 与其当前所在的世界维度 (Dimension Key) 记录入手中工具的 DataComponent 中
-                        _This.set(DataComponents.TARGET_POS, TState.getBlockPos());
-                        _This.set(DataComponents.TARGET_DIM, TState.getLevel().dimension().location());
-
-                        // 向客户端玩家发送一条操作成功的动作栏动作提示消息
-                        context.getPlayer().displayClientMessage(Component.translatable("item.anvilcraftportableaddon.enderpole.tooltip"), true);
-                        return InteractionResult.SUCCESS;
-                    }
-                    return super.useOn(context);
-                }
-
-                @Override
-                protected boolean updateCustomBlockEntityTag(BlockPos pos, Level level, @Nullable Player player, ItemStack stack, BlockState state) {
-                    // 1. 刚放下去时，只有当前位置（BOTTOM）的实体是绝对存在的
-                    if (level.getBlockEntity(pos) instanceof EnderPoleBlockEntity be) {
-                        ResourceLocation dim = stack.get(DataComponents.TARGET_DIM);
-                        BlockPos targetPos = stack.get(DataComponents.TARGET_POS);
-
-                        if (dim != null && targetPos != null) {
-                            // 先把连接数据稳妥地存在 BOTTOM 身上！
-                            be.TPos = targetPos;
-                            // 存入维度 ID，不在这里急着拿 Level 对象，防止空指针
-                            be.TDim = dim;
-                            be.setChanged();
-                        }
-                    }
-                    return super.updateCustomBlockEntityTag(pos, level, player, stack, state);
-                }
-            });
+    public static final DeferredItem<EnderPoleItem> ENDERPOLE_ITEM =
+            ITEMS.register("enderpole", EnderPoleItem::new);
 
     // ==========================================
     // 3. 基础能源方块物品 (POWER_BLOCK_ITEM)

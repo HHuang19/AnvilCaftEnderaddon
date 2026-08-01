@@ -5,7 +5,8 @@ import dev.anvilcraft.portableaddon.AnvilcraftPortableAddon;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -27,17 +28,16 @@ public class DataComponents {//用于注册数据类型
                     .persistent(Codec.BOOL)
                     .build());
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> TARGET_DIM  =
-            DATA_COMPONENTS.register("target_dim", () -> DataComponentType.<ResourceLocation>builder()
-                    .persistent(ResourceLocation.CODEC)
+    // 末影输电杆物品：记录绑定目标杆的维度与顶段坐标（相同目标可堆叠）
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceKey<Level>>> ENDER_TARGET_DIMENSION =
+            DATA_COMPONENTS.register("ender_target_dimension", () -> DataComponentType.<ResourceKey<Level>>builder()
+                    .persistent(ResourceKey.codec(Registries.DIMENSION))
                     .build());
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> TARGET_POS =
-            DATA_COMPONENTS.register("target_pos", () -> DataComponentType.<BlockPos>builder()
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> ENDER_TARGET_POS =
+            DATA_COMPONENTS.register("ender_target_pos", () -> DataComponentType.<BlockPos>builder()
                     .persistent(BlockPos.CODEC)
                     .build());
-
-
-
 
     public static void register(IEventBus modEventBus) {
         DataComponents.DATA_COMPONENTS.register(modEventBus);
