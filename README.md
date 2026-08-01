@@ -1,4 +1,4 @@
-# AnvilCaft: Portable addon
+# AnvilCaft: Portable addon/AnvilCaft: Ender addon
 为铁砧工艺增加一些全新的物品
 
 制作：YAMI (porbf, owner/所有者), WASD (hhuang19, Contributors/贡献者)
