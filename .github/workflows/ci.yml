@@ -5,6 +5,7 @@ on:
     branches:
       - releases/**
       - dev/**
+      - master/**
     paths:
       - src/**
       - gradle/**
