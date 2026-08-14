@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north,half=bottom": {
+      "model": "anvilcraft_portable_addon:block/ender_amulet_pillar"
+    },
+    "facing=east,half=bottom": {
+      "model": "anvilcraft_portable_addon:block/ender_amulet_pillar"
+    },
+    "facing=south,half=bottom": {
+      "model": "anvilcraft_portable_addon:block/ender_amulet_pillar"
+    },
+    "facing=west,half=bottom": {
+      "model": "anvilcraft_portable_addon:block/ender_amulet_pillar"
+    },
+    "facing=north,half=top": {
+      "model": "anvilcraft_portable_addon:block/ender_amulet_pillar_empty"
+    },
+    "facing=east,half=top": {
+      "model": "anvilcraft_portable_addon:block/ender_amulet_pillar_empty"
+    },
+    "facing=south,half=top": {
+      "model": "anvilcraft_portable_addon:block/ender_amulet_pillar_empty"
+    },
+    "facing=west,half=top": {
+      "model": "anvilcraft_portable_addon:block/ender_amulet_pillar_empty"
+    }
+  }
+}
