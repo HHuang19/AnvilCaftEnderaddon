@@ -2,6 +2,7 @@ package dev.anvilcraft.portableaddon.client;
 
 import dev.anvilcraft.portableaddon.AnvilcraftPortableAddon;
 import dev.anvilcraft.portableaddon.client.tooltip.EnderPoleTooltipProvider;
+import dev.anvilcraft.portableaddon.init.AddonBlocks;
 import dev.dubhe.anvilcraft.api.tooltip.HudTooltipManager;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -11,6 +12,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
@@ -28,5 +30,14 @@ public class AnvilCraftAddonTemplateClient {
         AnvilcraftPortableAddon.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
         // 末影输电杆：与原版输电杆一致，持铁砧锤查看时显示电网信息 HUD tooltip
         HudTooltipManager.INSTANCE.registerBlockEntityTooltip(new EnderPoleTooltipProvider());
+    }
+
+    @SubscribeEvent
+    static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        // 末影护符柱：渲染挂在柱子上的护符
+        event.registerBlockEntityRenderer(
+            AddonBlocks.ENDER_AMULET_PILLAR_ENTITY.get(),
+            EnderAmuletPillarBlockEntityRenderer::new
+        );
     }
 }

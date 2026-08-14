@@ -1,7 +1,9 @@
 package dev.anvilcraft.portableaddon.init;
 
 import dev.anvilcraft.portableaddon.AnvilcraftPortableAddon;
+import dev.anvilcraft.portableaddon.init.items.EnderAmulet;
 import dev.anvilcraft.portableaddon.init.items.EnderPoleItem;
+import dev.dubhe.anvilcraft.init.item.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
@@ -106,6 +108,21 @@ public class AddonItems {
     // ==========================================
     public static final DeferredItem<BlockItem> POWER_BLOCK_ITEM =
             ITEMS.registerSimpleBlockItem("power_block", AddonBlocks.POWER_BLOCK);
+
+    // ==========================================
+    // 4. 末影护符柱物品 (ENDER_AMULET_PILLAR_ITEM)
+    // 快捷将两格高方块转换为对应 BlockItem 的简易注册
+    // ==========================================
+    public static final DeferredItem<BlockItem> ENDER_AMULET_PILLAR_ITEM =
+            ITEMS.registerSimpleBlockItem("ender_amulet_pillar", AddonBlocks.ENDER_AMULET_PILLAR);
+
+    // ==========================================
+    // 5. 末影护符物品 (ENDER_AMULET)
+    // 无任何效果的 AnvilCraft 护符，携带 AMULET 数据组件，可挂在末影护符柱上
+    // ==========================================
+    public static final DeferredItem<Item> ENDER_AMULET =
+            ITEMS.register("ender_amulet", () -> new Item(new Item.Properties().stacksTo(1)
+                    .component(ModComponents.AMULET, EnderAmulet.INSTANCE)));
 
 
     /**

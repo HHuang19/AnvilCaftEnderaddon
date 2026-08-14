@@ -5,6 +5,7 @@ import dev.anvilcraft.lib.v2.registrum.Registrum;
 import dev.anvilcraft.lib.v2.config.ConfigManager;
 import dev.anvilcraft.portableaddon.data.AddonDatagen;
 import dev.anvilcraft.portableaddon.enchantment.EnchantmentEffects;
+import dev.anvilcraft.portableaddon.init.AddonAmuletTypes;
 import dev.anvilcraft.portableaddon.init.AddonBlocks;
 import dev.anvilcraft.portableaddon.init.AddonItemGroups;
 import dev.anvilcraft.portableaddon.init.AddonItems;
@@ -36,6 +37,7 @@ public class AnvilcraftPortableAddon {
         LOGGER.info("Ciallo～(∠・ω< )⌒★");
 
         AddonDatagen.init();
+        AddonAmuletTypes.register(modEventBus);
         AddonItems.register(modEventBus);
         DataComponents.register(modEventBus);
         Packets.init(modEventBus);
@@ -58,6 +60,8 @@ public class AnvilcraftPortableAddon {
             event.accept(AddonItems.Magnet);
             event.accept(AddonItems.POWER_BLOCK_ITEM);
             event.accept(AddonItems.ENDERPOLE_ITEM);
+            event.accept(AddonItems.ENDER_AMULET_PILLAR_ITEM);
+            event.accept(AddonItems.ENDER_AMULET);
 
             // 雷跃附魔书（可附魔在靴子上，实现二段跳）
             var holders = event.getParameters().holders();
