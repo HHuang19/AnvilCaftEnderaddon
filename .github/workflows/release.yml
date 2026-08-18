@@ -9,7 +9,6 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     env:
-      BUILD_TYPE: release
       VERSION_TYPE: ${{ github.event.release.prerelease && 'beta' || 'release' }}
     steps:
       - name: checkout

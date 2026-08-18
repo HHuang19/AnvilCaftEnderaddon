@@ -6,26 +6,15 @@ plugins {
     alias libs.plugins.lombok
 }
 
-String buildType
 String buildNumber = System.getenv("GITHUB_RUN_NUMBER")
-String buildTypeEnv = System.getenv("BUILD_TYPE")
-if (buildTypeEnv == "pr") {
-    buildType = 'pr'
-} else if (buildTypeEnv == "hotfix") {
-    buildType = 'hotfix'
-} else if (buildTypeEnv == "snapshot") {
-    buildType = 'snapshot'
-} else if (buildTypeEnv == "release") {
-    buildType = null
-    buildNumber = null
-} else {
-    buildType = 'build'
-}
 def githubRef = System.getenv("GITHUB_REF")
 if (githubRef != null && githubRef.startsWith("refs/tags/")) {
     version = githubRef.substring(githubRef.lastIndexOf('/') + 1)
+} else if (buildNumber != null) {
+    int n = buildNumber.toInteger()
+    version = "${n.intdiv(100)}.${n.intdiv(10) % 10}.${n % 10}"
 } else {
-    version = "${mod_version}" + (buildNumber != null ? "+${buildType}.${buildNumber}" : "")
+    version = mod_version
 }
 group = maven_group
 

@@ -15,8 +15,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      BUILD_TYPE: pr
     steps:
       - name: checkout
         uses: actions/checkout@v4
