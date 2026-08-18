@@ -9,4 +9,8 @@ repositories {
             includeGroup "dev.dubhe"
         }
     }
+    maven { // Curios API
+        name = "Illusive Soulworks maven"
+        url = "https://maven.theillusivec4.top/"
+    }
 }

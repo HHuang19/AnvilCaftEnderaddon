@@ -6,7 +6,10 @@ import dev.dubhe.anvilcraft.init.item.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +26,8 @@ import java.util.List;
  * <p>
  * 原版机制下，潜行 + 手持物品右键方块会跳过方块交互、改而调用物品的 useOn，
  * 因此绑定逻辑放在这里；非潜行右键柱子仍走方块交互（挂载/取下护符）。
+ * <p>
+ * 对空气右键（不瞄准方块）会解除当前绑定，用于换绑或归还柱子。
  */
 public class EnderAmuletItem extends Item {
 
@@ -62,6 +67,24 @@ public class EnderAmuletItem extends Item {
             true
         );
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (stack.get(DataComponents.AMULET_BOUND_DIMENSION) == null
+            || stack.get(DataComponents.AMULET_BOUND_POS) == null) {
+            return InteractionResultHolder.pass(stack);
+        }
+        if (level.isClientSide) return InteractionResultHolder.success(stack);
+        stack.remove(DataComponents.AMULET_BOUND_DIMENSION);
+        stack.remove(DataComponents.AMULET_BOUND_POS);
+        if (player instanceof ServerPlayer serverPlayer && serverPlayer.connection != null) {
+            serverPlayer.displayClientMessage(
+                Component.translatable("message.anvilcraft_portable_addon.amulet.unbound"), true
+            );
+        }
+        return InteractionResultHolder.success(stack);
     }
 
     @Override

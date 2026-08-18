@@ -79,6 +79,14 @@ versionRange = "[1.5.0,)"
 ordering = "NONE"
 side = "BOTH"
 
+# Curios 为可选软依赖：装上后末影护符可放入护身符(charm)槽生效
+[[dependencies."${mod_id}"]]
+modId = "curios"
+type = "optional"
+versionRange = "[9,)"
+ordering = "NONE"
+side = "BOTH"
+
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
 # stop your mod loading on the server for example.

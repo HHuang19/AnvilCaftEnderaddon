@@ -16,10 +16,12 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -29,7 +31,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * 末影护符桥接：当玩家在背包任意位置携带已绑定的末影护符时，
+ * 末影护符桥接：当玩家在主手、副手或 Curios 护身符槽中持有已绑定的末影护符时，
  * 把该护符绑定的护符柱上挂载的护符通过 {@link AmuletEvent.Find} 提供给
  * AnvilCraft 的 AmuletManager，使其效果（药水、伤害免疫、行为判定等）
  * 如同玩家直接携带这些护符一样作用于玩家。
@@ -54,13 +56,13 @@ public class EnderAmuletEventHandler {
     public static void onFind(AmuletEvent.Find event) {
         if (!(event.getPlayer() instanceof ServerPlayer player)) return;
         Map<String, PillarRef> pillars = new LinkedHashMap<>();
-        for (ItemStack stack : player.getInventory().items) {
-            collectBoundPillar(stack, pillars);
+        List<ItemStack> sources = new ArrayList<>();
+        sources.add(player.getMainHandItem());
+        sources.add(player.getOffhandItem());
+        if (ModList.get().isLoaded("curios")) {
+            EnderAmuletCuriosCompat.collectEnderAmulets(player, sources);
         }
-        for (ItemStack stack : player.getInventory().armor) {
-            collectBoundPillar(stack, pillars);
-        }
-        for (ItemStack stack : player.getInventory().offhand) {
+        for (ItemStack stack : sources) {
             collectBoundPillar(stack, pillars);
         }
 

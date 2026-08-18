@@ -13,4 +13,8 @@ dependencies {
     // AnvilCraft
     implementation(libs.anvilcraft) { transitive = false }
     interfaceInjectionData(libs.anvilcraft) { transitive = false }
+
+    // Curios API（可选软依赖：编译期 + 开发/测试运行时，不打进产物）
+    compileOnly(libs.curios)
+    runtimeOnly(libs.curios)
 }
