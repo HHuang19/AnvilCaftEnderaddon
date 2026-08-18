@@ -13,4 +13,7 @@ public class AddonConfig {
     @Comment("Power output for the Power Block\n能源方块的发电功率")
     @BoundedDiscrete(min = 0, max = 32)
     public int powerBlockOutput = 1;
+
+    @Comment("Force-load the chunk of a bound charm pillar so its charms work across dimensions\n跨维度时强加载已绑定的护符柱区块，使其护符效果生效")
+    public boolean crossDimensionChunkLoad = true;
 }

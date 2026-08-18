@@ -19,6 +19,8 @@ import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -70,6 +72,40 @@ public class EnderAmuletBridgeGameTest {
         helper.assertTrue(
                 !AmuletManager.get(level.registryAccess()).hasAmuletInInventory(player, ModAmulets.RUBY),
                 "Unbound Ender Amulet should not grant any pillar charms");
+        helper.succeed();
+    }
+
+    @GameTest(template = "amulet_bridge")
+    public void boundAmuletGrantsHungCharmCrossDimension(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerLevel end = level.getServer().getLevel(Level.END);
+        if (end == null) {
+            helper.fail("End dimension missing");
+            return;
+        }
+        BlockPos endPos = new BlockPos(2000, 64, 2000);
+        end.setBlock(endPos, AddonBlocks.ENDER_AMULET_PILLAR.get().defaultBlockState(), 3);
+        end.setBlock(endPos.above(), AddonBlocks.ENDER_AMULET_PILLAR.get().defaultBlockState()
+                .setValue(EnderAmuletPillarBlock.PARTHALF, Vertical2PartHalf.TOP), 3);
+        if (end.getBlockEntity(endPos) instanceof EnderAmuletPillarBlockEntity be) {
+            be.tryHangAmulet(Direction.NORTH, new ItemStack(ModItems.RUBY_AMULET.get()));
+        } else {
+            helper.fail("End pillar block entity missing");
+            return;
+        }
+
+        ServerPlayer player = mockPlayer(level);
+        ItemStack amulet = new ItemStack(AddonItems.ENDER_AMULET.get());
+        amulet.set(DataComponents.AMULET_BOUND_DIMENSION, Level.END);
+        amulet.set(DataComponents.AMULET_BOUND_POS, endPos);
+        player.getInventory().add(amulet);
+
+        helper.assertTrue(
+                AmuletManager.get(level.registryAccess()).hasAmuletInInventory(player, ModAmulets.RUBY),
+                "Bound amulet should grant the pillar's charms across dimensions");
+        helper.assertTrue(
+                end.getForcedChunks().contains(ChunkPos.asLong(endPos)),
+                "The End pillar chunk should be force-loaded");
         helper.succeed();
     }
 
