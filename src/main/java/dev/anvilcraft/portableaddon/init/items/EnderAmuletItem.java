@@ -10,9 +10,12 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.List;
 
 /**
  * 末影护符物品
@@ -59,5 +62,33 @@ public class EnderAmuletItem extends Item {
             true
         );
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public boolean isFoil(ItemStack stack) {
+        return stack.get(DataComponents.AMULET_BOUND_DIMENSION) != null
+            && stack.get(DataComponents.AMULET_BOUND_POS) != null;
+    }
+
+    @Override
+    public void appendHoverText(
+        ItemStack stack,
+        TooltipContext context,
+        List<Component> tooltipComponents,
+        TooltipFlag tooltipFlag
+    ) {
+        ResourceKey<Level> dim = stack.get(DataComponents.AMULET_BOUND_DIMENSION);
+        BlockPos pos = stack.get(DataComponents.AMULET_BOUND_POS);
+        if (dim != null && pos != null) {
+            tooltipComponents.add(Component.translatable(
+                "message.anvilcraft_portable_addon.amulet.tooltip",
+                pos.getX(), pos.getY(), pos.getZ(), dim.location().toString()
+            ));
+        } else {
+            tooltipComponents.add(
+                Component.translatable("message.anvilcraft_portable_addon.amulet.tooltip_empty")
+            );
+        }
+        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 }

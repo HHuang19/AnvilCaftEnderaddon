@@ -25,6 +25,8 @@
     "message.anvilcraft_portable_addon.talisman.removed": "已从护符柱取下护符",
     "message.anvilcraft_portable_addon.amulet.bound": "已把护符绑定到护符柱：(%s, %s, %s)",
     "message.anvilcraft_portable_addon.amulet.already_bound": "护符已绑定该护符柱",
+    "message.anvilcraft_portable_addon.amulet.tooltip": "绑定护符柱：%s, %s, %s @ %s",
+    "message.anvilcraft_portable_addon.amulet.tooltip_empty": "潜行右键末影护符柱以绑定该护符柱",
     "key.category.anvilcraftportableaddon": "便携附属",
     "key.anvilcraftportableaddon.blink": "闪现",
     "cooldown.anvilcraftportableaddon.blink": "§c⏳ %s秒后可再次使用"
