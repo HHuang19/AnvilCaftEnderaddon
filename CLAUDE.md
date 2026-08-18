@@ -68,5 +68,5 @@ import javax.annotation.ParametersAreNonnullByDefault;
   ```bash
   git add .
   git commit -m "feat(ai): [brief description of changes]"
-  git push origin main
+  git push origin dev/1.21/1.6
   ```
