@@ -2,7 +2,7 @@ package dev.anvilcraft.portableaddon.init;
 
 import dev.anvilcraft.portableaddon.AnvilcraftPortableAddon;
 import dev.anvilcraft.portableaddon.init.items.EnderAmulet;
-import dev.dubhe.anvilcraft.init.ModRegistries;
+import dev.dubhe.anvilcraft.init.registry.ModRegistryKeys;
 import dev.dubhe.anvilcraft.item.property.component.amulet.IAmulet;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -14,7 +14,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
  */
 public class AddonAmuletTypes {
     private static final DeferredRegister<IAmulet.Type<?>> REGISTER = DeferredRegister.create(
-            ModRegistries.AMULET_TYPE_KEY,
+            ModRegistryKeys.AMULET_TYPE,
             AnvilcraftPortableAddon.MOD_ID
     );
 
