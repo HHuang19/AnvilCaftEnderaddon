@@ -37,6 +37,16 @@ public class EnderAmuletPillarBlockEntity extends BlockEntity {
     private static final String TAG_AMULETS = "amulets";
     private static final String TAG_SIDE = "side";
 
+    // 护符渲染几何（客户端渲染器与此共享，保证"准星所指护符"的拾取槽位与实际渲染位置一致）
+    /** 护符缩放比例（缩小后 0.35，保证每侧 4 个互不重叠且最下方护符不被底座掩埋） */
+    public static final float AMULET_SCALE = 0.35F;
+    /** 护符距柱心的水平距离（主柱面在 x/z 0.09375~0.90625，护符贴在柱面外侧） */
+    public static final float AMULET_RADIUS = 0.42F;
+    /** 每侧第一个护符的顶部高度（顶部盖板底缘在 1.8125，下移避免遮挡） */
+    public static final float AMULET_Y_TOP = 1.55F;
+    /** 护符之间的固定竖向间距（最下方护符下沿 0.265，高于底座顶面 0.1875，完整露出） */
+    public static final float AMULET_Y_SPACING = 0.37F;
+
     /** 每侧按挂载顺序维护的护符列表（按方向索引） */
     private final Map<Direction, List<ItemStack>> amuletsBySide = new EnumMap<>(Direction.class);
 
@@ -66,11 +76,11 @@ public class EnderAmuletPillarBlockEntity extends BlockEntity {
         return true;
     }
 
-    /** 取下指定侧面最后挂载的护符；该侧为空时返回 EMPTY。 */
-    public @NotNull ItemStack removeLastAmulet(Direction side) {
+    /** 取下指定侧面自上而下第 index 个护符；index 越界或该侧为空时返回 EMPTY。移除后其余护符自动上移补位，不留空位。 */
+    public @NotNull ItemStack removeAmulet(Direction side, int index) {
         List<ItemStack> list = this.amuletsBySide.getOrDefault(side, List.of());
-        if (list.isEmpty()) return ItemStack.EMPTY;
-        ItemStack removed = list.remove(list.size() - 1);
+        if (index < 0 || index >= list.size()) return ItemStack.EMPTY;
+        ItemStack removed = list.remove(index);
         this.sync();
         return removed;
     }

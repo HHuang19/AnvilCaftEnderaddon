@@ -39,6 +39,17 @@ public class DataComponents {//用于注册数据类型
                     .persistent(BlockPos.CODEC)
                     .build());
 
+    // 末影护符物品：记录其绑定的末影护符柱的维度与主部件坐标
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceKey<Level>>> AMULET_BOUND_DIMENSION =
+            DATA_COMPONENTS.register("amulet_bound_dimension", () -> DataComponentType.<ResourceKey<Level>>builder()
+                    .persistent(ResourceKey.codec(Registries.DIMENSION))
+                    .build());
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> AMULET_BOUND_POS =
+            DATA_COMPONENTS.register("amulet_bound_pos", () -> DataComponentType.<BlockPos>builder()
+                    .persistent(BlockPos.CODEC)
+                    .build());
+
     public static void register(IEventBus modEventBus) {
         DataComponents.DATA_COMPONENTS.register(modEventBus);
     }

@@ -23,6 +23,8 @@
   "message.anvilcraft_portable_addon.talisman.hung": "Amulet hung on the pillar",
   "message.anvilcraft_portable_addon.talisman.full": "The talisman pillar is full",
   "message.anvilcraft_portable_addon.talisman.removed": "Amulet removed from the pillar",
+  "message.anvilcraft_portable_addon.amulet.bound": "Amulet bound to the pillar: (%s, %s, %s)",
+  "message.anvilcraft_portable_addon.amulet.already_bound": "Amulet is already bound to this pillar",
   "key.category.anvilcraftportableaddon": "Portable Addon",
   "key.anvilcraftportableaddon.blink": "Blink",
   "cooldown.anvilcraftportableaddon.blink": "§c⏳ %s s"

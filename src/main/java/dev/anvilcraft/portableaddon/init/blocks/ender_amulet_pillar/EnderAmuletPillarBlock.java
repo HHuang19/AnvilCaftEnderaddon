@@ -35,7 +35,8 @@ import java.util.List;
 /**
  * 末影护符柱方块
  * 两格高的垂直多方块结构，底部段与顶部段上下排列。
- * 玩家可把 AnvilCraft 护符挂载到柱子上（仅存储与展示），潜行空手右键可取下最后一个。
+ * 玩家可把 AnvilCraft 护符挂载到柱子上（仅存储与展示），空手右键可取下准星所指的护符。
+ * 手持末影护符潜行右键柱子可把护符绑定到该柱子（绑定逻辑在护符物品的 useOn 中）。
  * 护符挂在玩家放置时面对的那一侧，从上往下排列。
  */
 public class EnderAmuletPillarBlock extends SimpleMultiPartBlock<Vertical2PartHalf> implements EntityBlock {
@@ -59,6 +60,8 @@ public class EnderAmuletPillarBlock extends SimpleMultiPartBlock<Vertical2PartHa
         super(Properties.of()
                 .strength(2.0F)
                 .noOcclusion()
+                // 自发光：亮度 15，保证旁边有方块遮挡时柱子也不会出现阴影
+                .lightLevel(state -> 15)
         );
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(PARTHALF, Vertical2PartHalf.BOTTOM)
@@ -119,8 +122,8 @@ public class EnderAmuletPillarBlock extends SimpleMultiPartBlock<Vertical2PartHa
         @NotNull BlockHitResult hit
     ) {
         ItemStack stack = player.getItemInHand(hand);
-        boolean isRemoveAttempt = player.isShiftKeyDown() && stack.isEmpty();
-        boolean isHangAttempt = stack.has(ModComponents.AMULET);
+        boolean isRemoveAttempt = stack.isEmpty();
+        boolean isHangAttempt = !player.isShiftKeyDown() && stack.has(ModComponents.AMULET);
 
         // 客户端：对这两种交互返回 SUCCESS，确保服务端收到交互数据包
         if (level.isClientSide) {
@@ -129,10 +132,13 @@ public class EnderAmuletPillarBlock extends SimpleMultiPartBlock<Vertical2PartHa
 
         BlockPos mainPos = this.getMainPartPos(pos, state);
         if (level.getBlockEntity(mainPos) instanceof EnderAmuletPillarBlockEntity be) {
-            // 玩家面对的柱面：护符挂在玩家所在一侧
-            Direction side = player.getDirection().getOpposite();
             if (isRemoveAttempt) {
-                ItemStack removed = be.removeLastAmulet(side);
+                // 空手右键：取下准星所指的护符（按命中面与命中高度定位槽位）
+                Direction side = hit.getDirection();
+                if (!side.getAxis().isHorizontal()) return InteractionResult.PASS;
+                int index = this.hitAmuletSlot(mainPos, hit);
+                if (index < 0) return InteractionResult.PASS;
+                ItemStack removed = be.removeAmulet(side, index);
                 if (removed.isEmpty()) return InteractionResult.PASS;
                 player.getInventory().placeItemBackInInventory(removed);
                 player.playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.8F, 0.8F + level.getRandom().nextFloat() * 0.4F);
@@ -141,6 +147,8 @@ public class EnderAmuletPillarBlock extends SimpleMultiPartBlock<Vertical2PartHa
                 );
                 return InteractionResult.SUCCESS;
             }
+            // 玩家面对的柱面：护符挂在玩家所在一侧
+            Direction side = player.getDirection().getOpposite();
             if (isHangAttempt) {
                 if (be.tryHangAmulet(side, stack)) {
                     stack.shrink(1);
@@ -157,6 +165,14 @@ public class EnderAmuletPillarBlock extends SimpleMultiPartBlock<Vertical2PartHa
             }
         }
         return InteractionResult.PASS;
+    }
+
+    /** 根据右键命中点计算准星所指护符的槽位（自上而下从 0 开始）；未指向任何护符时返回 -1。 */
+    private int hitAmuletSlot(BlockPos mainPos, BlockHitResult hit) {
+        double relY = hit.getLocation().y - mainPos.getY();
+        double slot = (EnderAmuletPillarBlockEntity.AMULET_Y_TOP - relY) / EnderAmuletPillarBlockEntity.AMULET_Y_SPACING;
+        int index = (int) Math.round(slot);
+        return index >= 0 && index < EnderAmuletPillarBlockEntity.CAPACITY_PER_SIDE ? index : -1;
     }
 
     // ==================== 破坏掉落 ====================

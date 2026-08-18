@@ -22,15 +22,6 @@ import java.util.Map;
  */
 public class EnderAmuletPillarBlockEntityRenderer implements BlockEntityRenderer<EnderAmuletPillarBlockEntity> {
 
-    /** 护符缩放比例（固定，保证单个护符可见） */
-    private static final float SCALE = 0.5F;
-    /** 护符距柱心的水平距离（主柱面在 x/z 0.09375~0.90625，护符贴在柱面外侧） */
-    private static final float RADIUS = 0.42F;
-    /** 每侧第一个护符的顶部高度（顶部盖板底缘在 1.8125，下移避免遮挡） */
-    private static final float Y_TOP = 1.55F;
-    /** 护符之间的固定竖向间距 */
-    private static final float Y_SPACING = 0.45F;
-
     public EnderAmuletPillarBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
 
@@ -54,7 +45,7 @@ public class EnderAmuletPillarBlockEntityRenderer implements BlockEntityRenderer
                 ItemStack stack = sideList.get(i);
                 if (stack.isEmpty()) continue;
                 // 固定间距从上往下依次排列，护符数量变化时不会重新排布
-                float y = Y_TOP - i * Y_SPACING;
+                float y = EnderAmuletPillarBlockEntity.AMULET_Y_TOP - i * EnderAmuletPillarBlockEntity.AMULET_Y_SPACING;
 
                 // 依据该侧面选择柱面及旋转：护符正面朝外
                 Direction side = entry.getKey();
@@ -62,17 +53,21 @@ public class EnderAmuletPillarBlockEntityRenderer implements BlockEntityRenderer
                 float z = 0.5F;
                 float rot = 0.0F;
                 switch (side) {
-                    case SOUTH -> { x = 0.5F; z = 0.5F + RADIUS; rot = 0.0F; }
-                    case EAST -> { x = 0.5F + RADIUS; z = 0.5F; rot = 90.0F; }
-                    case NORTH -> { x = 0.5F; z = 0.5F - RADIUS; rot = 180.0F; }
-                    case WEST -> { x = 0.5F - RADIUS; z = 0.5F; rot = 270.0F; }
+                    case SOUTH -> { x = 0.5F; z = 0.5F + EnderAmuletPillarBlockEntity.AMULET_RADIUS; rot = 0.0F; }
+                    case EAST -> { x = 0.5F + EnderAmuletPillarBlockEntity.AMULET_RADIUS; z = 0.5F; rot = 90.0F; }
+                    case NORTH -> { x = 0.5F; z = 0.5F - EnderAmuletPillarBlockEntity.AMULET_RADIUS; rot = 180.0F; }
+                    case WEST -> { x = 0.5F - EnderAmuletPillarBlockEntity.AMULET_RADIUS; z = 0.5F; rot = 270.0F; }
                     default -> { }
                 }
 
                 poseStack.pushPose();
                 poseStack.translate(x, y, z);
                 poseStack.mulPose(Axis.YP.rotationDegrees(rot));
-                poseStack.scale(SCALE, SCALE, SCALE);
+                poseStack.scale(
+                    EnderAmuletPillarBlockEntity.AMULET_SCALE,
+                    EnderAmuletPillarBlockEntity.AMULET_SCALE,
+                    EnderAmuletPillarBlockEntity.AMULET_SCALE
+                );
                 Minecraft.getInstance().getItemRenderer().renderStatic(
                     stack,
                     ItemDisplayContext.FIXED,

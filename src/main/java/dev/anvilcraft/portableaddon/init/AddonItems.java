@@ -1,9 +1,8 @@
 package dev.anvilcraft.portableaddon.init;
 
 import dev.anvilcraft.portableaddon.AnvilcraftPortableAddon;
-import dev.anvilcraft.portableaddon.init.items.EnderAmulet;
+import dev.anvilcraft.portableaddon.init.items.EnderAmuletItem;
 import dev.anvilcraft.portableaddon.init.items.EnderPoleItem;
-import dev.dubhe.anvilcraft.init.item.ModComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
@@ -118,11 +117,11 @@ public class AddonItems {
 
     // ==========================================
     // 5. 末影护符物品 (ENDER_AMULET)
-    // 无任何效果的 AnvilCraft 护符，携带 AMULET 数据组件，可挂在末影护符柱上
+    // 无任何效果的 AnvilCraft 护符，携带 AMULET 数据组件，可挂在末影护符柱上；
+    // 潜行右键末影护符柱可把护符绑定到该柱子
     // ==========================================
-    public static final DeferredItem<Item> ENDER_AMULET =
-            ITEMS.register("ender_amulet", () -> new Item(new Item.Properties().stacksTo(1)
-                    .component(ModComponents.AMULET, EnderAmulet.INSTANCE)));
+    public static final DeferredItem<EnderAmuletItem> ENDER_AMULET =
+            ITEMS.register("ender_amulet", EnderAmuletItem::new);
 
 
     /**
