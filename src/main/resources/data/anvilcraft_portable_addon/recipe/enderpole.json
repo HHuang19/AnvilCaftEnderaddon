@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " A ",
+    " B ",
+    " C "
+  ],
+  "key": {
+    "A": { "item": "minecraft:ender_eye" },
+    "B": { "item": "anvilcraft:remote_transmission_pole" },
+    "C": { "item": "minecraft:obsidian" }
+  },
+  "result": { "id": "anvilcraft_portable_addon:enderpole", "count": 1 }
+}

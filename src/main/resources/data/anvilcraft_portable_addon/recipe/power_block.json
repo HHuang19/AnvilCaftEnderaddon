@@ -1,10 +1,11 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["R#R", "#X#", "R#R" ],
+  "pattern": [" A ", "BCB", "DDD" ],
   "key": {
-    "#": { "item": "anvilcraft:capacitor" },
-    "X": { "item": "anvilcraft:induction_light" },
-    "R": { "item": "minecraft:iron_ingot" }
+    "A": { "item": "anvilcraft:magnet_block" },
+    "B": { "item": "anvilcraft:induction_light" },
+    "C": { "item": "minecraft:anvil" },
+    "D": { "item": "anvilcraft:piezoelectric_crystal" }
   },
   "result": { "id": "anvilcraft_portable_addon:power_block", "count": 1 }
 }
