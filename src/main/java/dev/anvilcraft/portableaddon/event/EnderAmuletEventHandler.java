@@ -82,6 +82,22 @@ public class EnderAmuletEventHandler {
         releaseStale(player, needed, chunkLoad);
     }
 
+    /**
+     * 全物品栏扫描：把主物品栏中直接持有的末影护符提供给 AmuletManager，
+     * 使护符抽奖的概率判断把背包中的护符也视为已持有（概率归零）。
+     * 注意：这里不做护符柱桥接（桥接仅限主手/副手/Curios，见 {@link #onFind}），
+     * 否则 boundAmuletInMainInventoryGrantsNothing 测试会失败。
+     */
+    @SubscribeEvent
+    public static void onFindFromInventory(AmuletEvent.Find event) {
+        if (!(event.getPlayer() instanceof ServerPlayer player)) return;
+        for (ItemStack stack : player.getInventory().items) {
+            if (stack.getItem() instanceof EnderAmuletItem) {
+                event.provide(stack.copy());
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
