@@ -15,6 +15,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -219,6 +222,11 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
         return this.links.contains(new Link(dimension, pos));
     }
 
+    /** 本杆当前连接的其它末影输电杆数量（每条绑定计 1，无连接为 0）。 */
+    public int getLinkCount() {
+        return this.links.size();
+    }
+
     /**
      * 新增一条绑定（若已存在则忽略）。本杆可以同时绑定多根杆；
      * 双向绑定由末影链接器（物品）保证，这里只负责建立单侧引用。
@@ -230,6 +238,7 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
         this.links.add(link);
         this.resetBridge();
         this.setChanged();
+        this.syncLinksToClient();
         this.reconcileChunks();
     }
 
@@ -256,6 +265,7 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
         }
         this.resetBridge();
         this.setChanged();
+        this.syncLinksToClient();
     }
 
     /**
@@ -267,6 +277,7 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
         this.reconcileChunks();
         this.resetBridge();
         this.setChanged();
+        this.syncLinksToClient();
     }
 
     private void resetBridge() {
@@ -327,6 +338,27 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
             }
         }
         return result;
+    }
+
+    // ==================== 客户端同步 ====================
+
+    /** 数据变化后通知客户端刷新方块实体数据，使 HUD tooltip 中的连接数即时更新。 */
+    private void syncLinksToClient() {
+        Level level = this.getLevel();
+        if (level != null && !level.isClientSide()) {
+            BlockState state = this.getBlockState();
+            level.sendBlockUpdated(this.getBlockPos(), state, state, 3);
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        return this.saveWithoutMetadata(provider);
+    }
+
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     // ==================== NBT 持久化 ====================

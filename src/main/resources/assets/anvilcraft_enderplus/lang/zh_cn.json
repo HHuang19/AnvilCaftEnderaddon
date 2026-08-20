@@ -39,5 +39,6 @@
     "anvilcraft_enderplus.configuration.power_block_output.tooltip": "能量方块的发电功率",
     "anvilcraft_enderplus.configuration.section.anvilcraft.enderplus.common.toml": "末影+通用配置",
     "anvilcraft_enderplus.configuration.section.anvilcraft.enderplus.common.toml.title": "末影+通用配置",
-    "anvilcraft_enderplus.configuration.title": "末影+配置"
+    "anvilcraft_enderplus.configuration.title": "末影+配置",
+    "tooltip.anvilcraft_enderplus.pole.link_count": "已连接其他末影输电杆：%s 根"
 }

@@ -30,5 +30,6 @@
   "message.anvilcraft_enderplus.amulet.tooltip_empty": "Sneak-right-click an Ender Amulet Pillar to bind it",
   "key.category.anvilcraftenderplus": "Ender+",
   "key.anvilcraftenderplus.blink": "Blink",
-  "cooldown.anvilcraftenderplus.blink": "§c⏳ %s s"
+  "cooldown.anvilcraftenderplus.blink": "§c⏳ %s s",
+  "tooltip.anvilcraft_enderplus.pole.link_count": "Connected ender poles: %s"
 }

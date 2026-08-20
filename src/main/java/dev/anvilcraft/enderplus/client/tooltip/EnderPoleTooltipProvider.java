@@ -1,6 +1,7 @@
 package dev.anvilcraft.enderplus.client.tooltip;
 
 import dev.anvilcraft.enderplus.init.blocks.ender_transmission_pole.EnderPoleBlock;
+import dev.anvilcraft.enderplus.init.blocks.ender_transmission_pole.EnderPoleBlockEntity;
 import dev.dubhe.anvilcraft.api.power.PowerComponentInfo;
 import dev.dubhe.anvilcraft.api.power.SimplePowerGrid;
 import dev.dubhe.anvilcraft.api.tooltip.impl.PowerComponentTooltipProvider;
@@ -14,6 +15,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -44,19 +46,31 @@ public class EnderPoleTooltipProvider extends ITooltipProvider.BlockEntityToolti
             .getMainPartPos(entity.getBlockPos(), state);
         BlockPos topPos = mainPartPos.above(2);
 
+        if (CompatUtil.HAS_JADE.get() && AnvilCraftClient.CONFIG.doNotShowTooltipWhenJadePresent) {
+            return List.of();
+        }
+
+        // 本杆当前连接的其它末影输电杆数量（0 表示未连接）
+        int linkCount = 0;
+        Level level = entity.getLevel();
+        if (level != null && level.getBlockEntity(topPos) instanceof EnderPoleBlockEntity pole) {
+            linkCount = pole.getLinkCount();
+        }
+
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.translatable("tooltip.anvilcraft_enderplus.pole.link_count", linkCount)
+            .setStyle(Style.EMPTY.applyFormat(ChatFormatting.GRAY)));
+
         Optional<SimplePowerGrid> powerGrids = SimplePowerGrid.findPowerGrid(topPos);
-        if (powerGrids.isEmpty()) return List.of();
+        if (powerGrids.isEmpty()) return lines;
         SimplePowerGrid grid = powerGrids.get();
         Optional<PowerComponentInfo> optional = grid.getInfoForPos(topPos);
-        if (optional.isEmpty()) return List.of();
-
-        if (CompatUtil.HAS_JADE.get() && AnvilCraftClient.CONFIG.doNotShowTooltipWhenJadePresent) return List.of();
+        if (optional.isEmpty()) return lines;
 
         LocalPlayer player = Minecraft.getInstance().player;
         boolean original = player != null && player.isShiftKeyDown();
         boolean overloaded = grid.getConsume() > grid.getGenerate();
 
-        List<Component> lines = new ArrayList<>();
         if (overloaded) {
             for (int i = 1; i <= 3; i++) {
                 lines.add(Component.translatable("tooltip.anvilcraft.grid_information.overloaded" + i));
