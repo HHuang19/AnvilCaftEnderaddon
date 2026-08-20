@@ -15,8 +15,11 @@ if (releaseVersion != null && !releaseVersion.isBlank()) {
 } else if (githubRef != null && githubRef.startsWith("refs/tags/")) {
     version = githubRef.substring(githubRef.lastIndexOf('/') + 1)
 } else if (buildNumber != null) {
-    int n = buildNumber.toInteger()
-    version = "${n.intdiv(100)}.${n.intdiv(10) % 10}.${n % 10}"
+    // 相对 ci_start_run 计数：该运行号为 1.0.0，之后每次构建 +1（1.0.0 -> 1.0.9 -> 1.1.0 -> ...）
+    int base = ci_start_run as int
+    int k = buildNumber.toInteger() - base
+    if (k < 0) k = 0
+    version = "${1 + k.intdiv(100)}.${k.intdiv(10) % 10}.${k % 10}"
 } else {
     version = mod_version
 }

@@ -38,7 +38,7 @@ jobs:
         uses: christian-draeger/read-properties@1.1.1
         with:
           path: gradle.properties
-          properties: 'mod_id mod_name java_version upload'
+          properties: 'mod_id mod_name java_version upload ci_start_run'
 
       - name: Setup Java ${{ steps.properties.outputs.java_version }}
         uses: actions/setup-java@v3.6.0
@@ -50,17 +50,21 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
 
-      # 用 GitHub 全局构建号推导 CI 版本 (x.y.z)，并检测"个位进十位"的进位点：
-      # 每当 patch 回到 0（如 1.0.9 -> 1.1.0）就是 release 边界，release 版本取 x.y（去掉末尾 0）。
+      # 相对 ci_start_run 计数推导 CI 版本 (x.y.z)：该运行号为 1.0.0，之后每次构建 +1。
+      # 每当 patch 回到 0（个位 9 -> 0，如 1.0.9 -> 1.1.0）就是 release 边界：
+      # 本次构建变成正式版 x.y（去掉末尾 0）；但起始的 1.0.0 (k=0) 不触发发布。
       - name: Compute version & detect release boundary
         id: version
         run: |
           N="${{ github.run_number }}"
-          MAJOR=$(( N / 100 ))
-          MINOR=$(( (N / 10) % 10 ))
-          PATCH=$(( N % 10 ))
+          BASE="${{ steps.properties.outputs.ci_start_run }}"
+          K=$(( N - BASE ))
+          if [[ "$K" -lt 0 ]]; then K=0; fi
+          MAJOR=$(( 1 + K / 100 ))
+          MINOR=$(( (K / 10) % 10 ))
+          PATCH=$(( K % 10 ))
           echo "ci=${MAJOR}.${MINOR}.${PATCH}" >> "$GITHUB_OUTPUT"
-          if [[ "$PATCH" == "0" ]]; then
+          if [[ "$PATCH" == "0" && "$K" != "0" ]]; then
             echo "release=${MAJOR}.${MINOR}" >> "$GITHUB_OUTPUT"
             echo "is_release=true" >> "$GITHUB_OUTPUT"
           else
