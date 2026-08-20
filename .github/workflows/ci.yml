@@ -26,6 +26,8 @@ on:
 
 jobs:
   build:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -48,14 +50,36 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
 
+      # 用 GitHub 全局构建号推导 CI 版本 (x.y.z)，并检测"个位进十位"的进位点：
+      # 每当 patch 回到 0（如 1.0.9 -> 1.1.0）就是 release 边界，release 版本取 x.y（去掉末尾 0）。
+      - name: Compute version & detect release boundary
+        id: version
+        run: |
+          N="${{ github.run_number }}"
+          MAJOR=$(( N / 100 ))
+          MINOR=$(( (N / 10) % 10 ))
+          PATCH=$(( N % 10 ))
+          echo "ci=${MAJOR}.${MINOR}.${PATCH}" >> "$GITHUB_OUTPUT"
+          if [[ "$PATCH" == "0" ]]; then
+            echo "release=${MAJOR}.${MINOR}" >> "$GITHUB_OUTPUT"
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=" >> "$GITHUB_OUTPUT"
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build with Gradle
         uses: gradle/actions/setup-gradle@v4.3.1
 
+      # 进位点：注入 MOD_VERSION=x.y，本次构建产出正式版 x.y 的 jar；
+      # 其它构建不注入，沿用 build.gradle 由构建号推出的 x.y.z。
       - name: Build
+        env:
+          MOD_VERSION: ${{ steps.version.outputs.release }}
         run: ./gradlew build
 
       - name: Get Version
-        id: version
+        id: artifact
         run: |
           MESSAGE=$(ls build/libs/* | grep sources.jar -v | grep shadow.jar -v | grep slim.jar -v | awk -F '${{ steps.properties.outputs.mod_id }}-neoforge-|.jar' '{print $2}')
           echo "version=$MESSAGE" >> $GITHUB_OUTPUT
@@ -63,8 +87,8 @@ jobs:
       - name: capture build artifacts
         uses: actions/upload-artifact@v4.3.3
         with:
-          name: "${{ steps.properties.outputs.mod_name }} ${{ steps.version.outputs.version }}"
-          path: build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
+          name: "${{ steps.properties.outputs.mod_name }} ${{ steps.artifact.outputs.version }}"
+          path: build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.artifact.outputs.version }}.jar
 
       - name: Publish to maven
         if: ${{ github.event_name == 'push' && steps.properties.outputs.upload }}
@@ -78,5 +102,19 @@ jobs:
       - name: gametest
         uses: Anvil-Dev/dedicated-server-launch-test@1.21.1-neoforge
         with:
-          mods: build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.version.outputs.version }}.jar
+          mods: build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.artifact.outputs.version }}.jar
           extra-mods: anvilcraft:1.21.1-1.6.0+snapshot.2169
+
+      # 进位点：自动发布正式版 GitHub Release（版本 x.y）并附带对应 jar。
+      # 注意：发布 Release 会触发 release.yml（其 GITHUB_REF=tagname=x.y）再构建一次同一正式版，
+      # 若 upload=true 则由 release.yml 负责同步到 Modrinth / CurseForge。
+      - name: Upload Release
+        if: ${{ steps.version.outputs.is_release == 'true' && github.event_name != 'pull_request' }}
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          tag_name: ${{ steps.version.outputs.release }}
+          name: "${{ steps.properties.outputs.mod_name }} v${{ steps.version.outputs.release }}"
+          body: "自动构建正式版 v${{ steps.version.outputs.release }}（由 CI 进位触发）"
+          files: build/libs/${{ steps.properties.outputs.mod_id }}-neoforge-${{ steps.artifact.outputs.version }}.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
