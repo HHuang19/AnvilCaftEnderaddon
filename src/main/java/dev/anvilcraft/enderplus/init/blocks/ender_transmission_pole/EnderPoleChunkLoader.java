@@ -74,4 +74,13 @@ public final class EnderPoleChunkLoader {
         }
         FORCED.clear();
     }
+
+    /** GameTest 观察用：当前仍未被释放的强加载引用总数（用于断言解绑后无泄漏）。 */
+    static int totalRefs() {
+        int total = 0;
+        for (int n : FORCED.values()) {
+            total += n;
+        }
+        return total;
+    }
 }

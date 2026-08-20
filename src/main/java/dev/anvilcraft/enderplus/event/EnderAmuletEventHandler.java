@@ -4,6 +4,7 @@ import dev.anvilcraft.enderplus.AnvilcraftEnderplus;
 import dev.anvilcraft.enderplus.init.DataComponents;
 import dev.anvilcraft.enderplus.init.blocks.ender_amulet_pillar.EnderAmuletPillarBlockEntity;
 import dev.anvilcraft.enderplus.init.items.EnderAmuletItem;
+import dev.anvilcraft.enderplus.network.DoubleWalk;
 import dev.dubhe.anvilcraft.api.event.AmuletEvent;
 import dev.dubhe.anvilcraft.init.item.ModComponents;
 import net.minecraft.core.BlockPos;
@@ -102,6 +103,7 @@ public class EnderAmuletEventHandler {
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         releaseAll(player.server, player.getUUID());
+        DoubleWalk.removePlayer(player.getUUID());
     }
 
     @SubscribeEvent

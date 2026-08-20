@@ -29,6 +29,11 @@ public record DoubleWalk() implements CustomPacketPayload {
     // 服务端冷却追踪（玩家UUID → 最后一次使用时的游戏刻）
     private static final Map<UUID, Long> COOLDOWNS = new ConcurrentHashMap<>();
 
+    /** 玩家登出时清理其服务端冷却记录，避免静态表随玩家数无限增长（内存泄漏）。 */
+    public static void removePlayer(UUID uuid) {
+        COOLDOWNS.remove(uuid);
+    }
+
     /** 冷却随附魔等级递减：等级 1 = 60 tick(3 秒)，每级再减 15 tick，最低 20 tick(1 秒) */
     private static long cooldownTicks(int level) {
         return Math.max(20, 60 - (level - 1) * 15);
@@ -46,8 +51,8 @@ public record DoubleWalk() implements CustomPacketPayload {
             Holder<Enchantment> doubleWalk = enchantments.getOrThrow(EnchantmentEffects.DOUBLE_WALK);
 
             ItemStack legs = player.getInventory().armor.get(1);
-            int level = legs.getEnchantmentLevel(doubleWalk);
             if (legs.isEmpty()) return;
+            int level = legs.getEnchantmentLevel(doubleWalk);
             if (level <= 0) return;
             if (player.hurtTime > 0) return;
 

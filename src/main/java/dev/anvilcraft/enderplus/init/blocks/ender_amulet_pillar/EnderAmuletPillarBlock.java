@@ -60,8 +60,8 @@ public class EnderAmuletPillarBlock extends SimpleMultiPartBlock<Vertical2PartHa
         super(Properties.of()
                 .strength(2.0F)
                 .noOcclusion()
-                // 自发光：亮度 15，保证旁边有方块遮挡时柱子也不会出现阴影
-                .lightLevel(state -> 15)
+                // 自发光：仅主部件（持有护符的底部段）满亮，避免整根柱子成为恒定光源
+                .lightLevel(state -> state.getValue(PARTHALF) == Vertical2PartHalf.BOTTOM ? 15 : 0)
         );
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(PARTHALF, Vertical2PartHalf.BOTTOM)

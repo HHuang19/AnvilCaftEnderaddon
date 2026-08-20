@@ -27,7 +27,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 末影输电杆的方块实体 (BlockEntity)
@@ -60,6 +62,9 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
     /** 本杆当前绑定的所有远端杆（一根杆可以同时绑定多根杆，全部组成同一共享电网） */
     private final List<Link> links = new ArrayList<>();
 
+    /** 本杆当前已强加载的 (维度, 区块)，保证 force/release 严格配对，避免引用计数失衡导致区块被永久强加载。 */
+    private final Set<PoleChunkRef> forcedChunks = new HashSet<>();
+
     @Nullable
     private PowerGrid grid = null;
 
@@ -74,6 +79,10 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
 
     /** 一条绑定关系：指向远端杆的维度与顶段坐标 */
     private record Link(ResourceKey<Level> dimension, BlockPos pos) {
+    }
+
+    /** 一个已强加载的 (维度, 区块)，用于精确配对 force/release */
+    private record PoleChunkRef(ResourceKey<Level> dimension, long chunkPos) {
     }
 
     public EnderPoleBlockEntity(BlockPos pos, BlockState blockState) {
@@ -147,7 +156,8 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
 
         int gen = 0;
         int con = 0;
-        for (IPowerComponent component : List.copyOf(powerGrid.getComponents())) {
+        // 服务端电网刻在单线程执行，且此处只读不改，直接迭代安全集，避免每电网刻拷贝整个组件集
+        for (IPowerComponent component : powerGrid.getComponents()) {
             if (component instanceof IPowerStorage) continue;
             if (component instanceof EnderBridge) continue;
             if (component instanceof IPowerProducer producer) gen += producer.getOutputPower();
@@ -220,7 +230,7 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
         this.links.add(link);
         this.resetBridge();
         this.setChanged();
-        this.forceLinks();
+        this.reconcileChunks();
     }
 
     /**
@@ -228,13 +238,14 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
      */
     public void unbind() {
         if (this.links.isEmpty()) return;
+        List<Link> toRemove = new ArrayList<>(this.links);
+        this.links.clear();
+        // 先释放本杆持有的全部强加载引用（本杆区块 + 所有远端区块）
+        this.reconcileChunks();
         Level level = this.getLevel();
         if (level instanceof ServerLevel serverLevel) {
             MinecraftServer server = serverLevel.getServer();
-            for (Link link : new ArrayList<>(this.links)) {
-                // 释放本杆与远端所在区块的强加载
-                EnderPoleChunkLoader.release(server, level.dimension(), new ChunkPos(this.getBlockPos()));
-                EnderPoleChunkLoader.release(server, link.dimension(), new ChunkPos(link.pos()));
+            for (Link link : toRemove) {
                 // 通知远端移除指向本杆的反向引用（不触发远端的整体解绑，保留其其它绑定）
                 Level targetLevel = server.getLevel(link.dimension());
                 if (targetLevel != null
@@ -243,7 +254,6 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
                 }
             }
         }
-        this.links.clear();
         this.resetBridge();
         this.setChanged();
     }
@@ -254,11 +264,7 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
     public void removeLinkTo(ResourceKey<Level> dimension, BlockPos pos) {
         Link link = new Link(dimension, pos);
         if (!this.links.remove(link)) return;
-        if (this.getLevel() instanceof ServerLevel serverLevel) {
-            MinecraftServer server = serverLevel.getServer();
-            EnderPoleChunkLoader.release(server, dimension, new ChunkPos(pos));
-            EnderPoleChunkLoader.release(server, serverLevel.dimension(), new ChunkPos(this.getBlockPos()));
-        }
+        this.reconcileChunks();
         this.resetBridge();
         this.setChanged();
     }
@@ -270,15 +276,43 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
         this.reportedCon = 0;
     }
 
-    /** 重新施加当前所有绑定两端的区块强加载（用于载入存档后恢复跨维度输电）。 */
-    private void forceLinks() {
+    /**
+     * 把本杆当前需要的强加载与已持有集合对齐：
+     * 需要 = 本杆区块（仅在仍有绑定链时，避免孤立杆也常驻）+ 每条绑定链的远端区块。
+     * 只有首次需要某区块时才 {@link EnderPoleChunkLoader#force}，并在不再需要时精确释放，
+     * 保证每个 (维度, 区块) 的 force/release 严格配对，不会因重复 {@code setBound} 或存档重载而虚增引用。
+     */
+    private void reconcileChunks() {
         if (!AnvilcraftEnderplus.CONFIG.crossDimensionChunkLoad) return;
         if (!(this.getLevel() instanceof ServerLevel serverLevel)) return;
         MinecraftServer server = serverLevel.getServer();
-        EnderPoleChunkLoader.force(server, serverLevel.dimension(), new ChunkPos(this.getBlockPos()));
-        for (Link link : this.links) {
-            EnderPoleChunkLoader.force(server, link.dimension(), new ChunkPos(link.pos()));
+
+        Set<PoleChunkRef> needed = new HashSet<>();
+        if (!this.links.isEmpty()) {
+            needed.add(new PoleChunkRef(serverLevel.dimension(), new ChunkPos(this.getBlockPos()).toLong()));
         }
+        for (Link link : this.links) {
+            needed.add(new PoleChunkRef(link.dimension(), new ChunkPos(link.pos()).toLong()));
+        }
+
+        for (PoleChunkRef ref : needed) {
+            if (this.forcedChunks.add(ref)) {
+                EnderPoleChunkLoader.force(server, ref.dimension(), new ChunkPos(ref.chunkPos()));
+            }
+        }
+        for (PoleChunkRef ref : new ArrayList<>(this.forcedChunks)) {
+            if (!needed.contains(ref)) {
+                this.forcedChunks.remove(ref);
+                EnderPoleChunkLoader.release(server, ref.dimension(), new ChunkPos(ref.chunkPos()));
+            }
+        }
+    }
+
+    /** 方块实体加入世界时调用：用于载入存档后按持久化的绑定恢复区块强加载。 */
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        this.reconcileChunks();
     }
 
     /** 跨维度读取所有已加载的远端杆（不主动加载区块；远端未加载/不是杆时忽略）。 */
@@ -326,7 +360,6 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
             BlockPos pos = new BlockPos(c.getInt("x"), c.getInt("y"), c.getInt("z"));
             this.links.add(new Link(dimension, pos));
         }
-        // 载入后重新施加区块强加载，恢复跨维度输电
-        this.forceLinks();
+        // 区块强加载在 onLoad() 中按持久化的绑定恢复
     }
 }
