@@ -30,5 +30,14 @@
     "message.anvilcraft_enderplus.amulet.tooltip_empty": "潜行右键末影护符柱以绑定该护符柱",
     "key.category.anvilcraftenderplus": "末影+",
     "key.anvilcraftenderplus.blink": "闪现",
-    "cooldown.anvilcraftenderplus.blink": "§c⏳ %s秒后可再次使用"
+    "cooldown.anvilcraftenderplus.blink": "§c⏳ %s秒后可再次使用",
+    "anvilcraft_enderplus.configuration.cross_dimension_chunk_load": "跨维度区块加载",
+    "anvilcraft_enderplus.configuration.cross_dimension_chunk_load.tooltip": "跨维度时强加载已绑定的护符柱与末影输电杆区块，使其跨维度生效",
+    "anvilcraft_enderplus.configuration.double_walk_distance": "闪现传送距离",
+    "anvilcraft_enderplus.configuration.double_walk_distance.tooltip": "闪现附魔的传送距离（以方块为单位）",
+    "anvilcraft_enderplus.configuration.power_block_output": "能量方块发电功率",
+    "anvilcraft_enderplus.configuration.power_block_output.tooltip": "能量方块的发电功率",
+    "anvilcraft_enderplus.configuration.section.anvilcraft.enderplus.common.toml": "末影+通用配置",
+    "anvilcraft_enderplus.configuration.section.anvilcraft.enderplus.common.toml.title": "末影+通用配置",
+    "anvilcraft_enderplus.configuration.title": "末影+配置"
 }
