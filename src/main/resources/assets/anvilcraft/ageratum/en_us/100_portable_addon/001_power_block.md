@@ -21,7 +21,7 @@ items:
 - Connection range: 2 blocks around itself
 
 <tip>
-A single Power Block outputs little power; it suits small machines. For more power, see the Power System chapter of this manual
+A single Power Block outputs little power; it suits small machines. For more power, see the Power System chapter
 </tip>
 
 # Other
