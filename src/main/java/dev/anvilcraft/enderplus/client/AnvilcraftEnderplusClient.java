@@ -18,8 +18,8 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 @Mod(value = AnvilcraftEnderplus.MOD_ID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = AnvilcraftEnderplus.MOD_ID, value = Dist.CLIENT)
-public class AnvilCraftAddonTemplateClient {
-    public AnvilCraftAddonTemplateClient(IEventBus modBus, ModContainer container) {
+public class AnvilcraftEnderplusClient {
+    public AnvilcraftEnderplusClient(IEventBus modBus, ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         modBus.addListener(KeyBindings::onRegisterKeyMappings);
     }
