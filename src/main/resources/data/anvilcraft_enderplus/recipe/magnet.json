@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["#  ", " X ", "  X"],
+  "key": {
+    "#": { "item": "anvilcraft:hollow_magnet_block" },
+    "X": { "item": "minecraft:stick" }
+  },
+  "result": { "id": "anvilcraft_enderplus:magnet", "count": 1 }
+}

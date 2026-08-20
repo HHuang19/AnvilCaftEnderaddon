@@ -1,0 +1,11 @@
+{
+  "anvilcraft_enderplus.configuration.cross_dimension_chunk_load": "Cross Dimension Chunk Load",
+  "anvilcraft_enderplus.configuration.cross_dimension_chunk_load.tooltip": "Force-load the chunk of a bound charm pillar so its charms work across dimensions\n跨维度时强加载已绑定的护符柱区块，使其护符效果生效",
+  "anvilcraft_enderplus.configuration.double_walk_distance": "Double Walk Distance",
+  "anvilcraft_enderplus.configuration.double_walk_distance.tooltip": "Teleport distance for the Double Walk enchantment (in blocks)\n雷行附魔的传送距离（以方块为单位）",
+  "anvilcraft_enderplus.configuration.power_block_output": "Power Block Output",
+  "anvilcraft_enderplus.configuration.power_block_output.tooltip": "Power output for the Power Block\n能源方块的发电功率",
+  "anvilcraft_enderplus.configuration.section.anvilcraft.enderplus.common.toml": "Anvilcraft Enderplus Common Configuration",
+  "anvilcraft_enderplus.configuration.section.anvilcraft.enderplus.common.toml.title": "Anvilcraft Enderplus Common Configuration",
+  "anvilcraft_enderplus.configuration.title": "Anvilcraft Enderplus Configuration"
+}

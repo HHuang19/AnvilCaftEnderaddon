@@ -1,0 +1,12 @@
+{
+  "type": "anvilcraft:normal",
+  "amulet": {
+    "count": 1,
+    "id": "anvilcraft_enderplus:ender_amulet"
+  },
+  "obtains": {
+    "source_entity": {
+      "type": "#anvilcraft_enderplus:amulet_valid/ender"
+    }
+  }
+}

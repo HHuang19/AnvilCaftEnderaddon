@@ -1,0 +1,15 @@
+{
+  "type": "anvilcraft:jewel_crafting",
+  "ingredients": [
+    {
+      "item": "anvilcraft:silver_ingot"
+    },
+    {
+      "item": "minecraft:ender_eye"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "anvilcraft_enderplus:ender_amulet"
+  }
+}

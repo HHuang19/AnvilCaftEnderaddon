@@ -29,6 +29,10 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 idea {
     module {
         downloadSources = true
