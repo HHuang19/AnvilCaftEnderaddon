@@ -97,9 +97,8 @@ public class EnderPoleItem extends BlockItem {
         }
         if (level.getBlockEntity(topPos) instanceof EnderPoleBlockEntity localPole
             && targetLevel.getBlockEntity(targetPos) instanceof EnderPoleBlockEntity targetPole) {
-            // 先解除各自现有绑定，再建立互绑；物品保留绑定目标（可继续用于其它杆）
-            localPole.unbind();
-            targetPole.unbind();
+            // 建立互绑：一根杆可以同时绑定多根杆，全部组成同一共享电网；
+            // 物品保留绑定目标（可继续用于其它杆）
             localPole.setBound(targetDim, targetPos);
             targetPole.setBound(myDim, topPos);
             player.displayClientMessage(

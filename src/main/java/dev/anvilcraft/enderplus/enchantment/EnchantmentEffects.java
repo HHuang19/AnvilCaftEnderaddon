@@ -24,7 +24,7 @@ public class EnchantmentEffects {
         context.register(DOUBLE_JUMP, Enchantment.enchantment(
                 Enchantment.definition(
                         items.getOrThrow(ItemTags.FOOT_ARMOR),
-                        5, 1,
+                        5, 2,
                         Enchantment.constantCost(15),
                         Enchantment.constantCost(35),
                         1,
@@ -35,7 +35,7 @@ public class EnchantmentEffects {
         context.register(DOUBLE_WALK, Enchantment.enchantment(
                 Enchantment.definition(
                         items.getOrThrow(ItemTags.LEG_ARMOR),
-                        5, 1,
+                        5, 3,
                         Enchantment.constantCost(15),
                         Enchantment.constantCost(35),
                         1,

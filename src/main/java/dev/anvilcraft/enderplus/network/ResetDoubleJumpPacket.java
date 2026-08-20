@@ -1,14 +1,18 @@
 package dev.anvilcraft.enderplus.network;
 
 import dev.anvilcraft.enderplus.AnvilcraftEnderplus;
+import dev.anvilcraft.enderplus.enchantment.EnchantmentEffects;
 import dev.anvilcraft.enderplus.init.DataComponents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 //一个网络包，用来重置二段跳
@@ -32,14 +36,15 @@ public record ResetDoubleJumpPacket() implements CustomPacketPayload {
 
             if (boots.isEmpty()) return;
 
-            //player.displayClientMessage(Component.literal("Resetting double jump for " + player.getName().getString()), false);
+            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            Holder<Enchantment> doubleJump = enchantments.getOrThrow(EnchantmentEffects.DOUBLE_JUMP);
+            int level = boots.getEnchantmentLevel(doubleJump);
 
-            Boolean canJump = boots.get(DataComponents.CAN_DOUBLE_JUMP);
-            if (canJump != null && canJump) return;  // 已经是 true 就不处理
+            Integer left = boots.get(DataComponents.DOUBLE_JUMP_LEFT.get());
+            if (left != null && left == level) return;  // 已经是最新次数就不处理
 
-            //player.displayClientMessage(Component.literal("Double jump reset!"), false);
-
-            boots.set(DataComponents.CAN_DOUBLE_JUMP.get(), true);
+            // 落地后把剩余跳跃次数重置为附魔等级（每级提供一次空中跳跃）
+            boots.set(DataComponents.DOUBLE_JUMP_LEFT.get(), level);
         });
     }
 }

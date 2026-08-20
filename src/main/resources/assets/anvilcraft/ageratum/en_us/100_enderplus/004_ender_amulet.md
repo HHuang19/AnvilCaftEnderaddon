@@ -12,7 +12,10 @@ items:
 
 # Obtaining
 
-The Ender Amulet is crafted through AnvilCraft's **Jewel Crafting**:
+Obtain it by taking **fatal enderman damage** while holding a charm box that contains a **Totem of Undying**.
+The Ender Amulet can also be duplicated at the Jewel Crafting table.
+When the box's totem is consumed, the initial raffle chance is raised to **20%**, each failed raffle raises it
+by **10%**, the chance caps at **100%**, and it stays at **0%** while you already carry such an amulet in your inventory.
 
 <recipe id="anvilcraft_enderplus:ender_amulet"/>
 
@@ -28,11 +31,6 @@ The Ender Amulet is crafted through AnvilCraft's **Jewel Crafting**:
 - While carrying a bound amulet, the charms' effects keep applying to the player as long as the pillar's chunk is loaded
 - The `crossDimensionChunkLoad` option (default on) **force-loads** the pillar's chunk while you hold the amulet, giving true cross-dimension portability
 
-<tip>
-Hang your frequently used charms (potions, damage immunity, etc.) all over a pillar, bind one Ender Amulet and carry it — it is like carrying a whole "charm warehouse" in your pocket
-</tip>
-
 # Other
 
-- It hooks the AnvilCraft AmuletEvent, so effects are identical to carrying the original charms
 - Force-loaded chunks are released automatically when you log out or stop holding the amulet

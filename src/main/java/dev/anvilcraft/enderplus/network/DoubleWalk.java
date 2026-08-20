@@ -28,7 +28,11 @@ public record DoubleWalk() implements CustomPacketPayload {
 
     // 服务端冷却追踪（玩家UUID → 最后一次使用时的游戏刻）
     private static final Map<UUID, Long> COOLDOWNS = new ConcurrentHashMap<>();
-    private static final long COOLDOWN_TICKS = 60;// 3秒 * 20 tick/秒
+
+    /** 冷却随附魔等级递减：等级 1 = 60 tick(3 秒)，每级再减 15 tick，最低 20 tick(1 秒) */
+    private static long cooldownTicks(int level) {
+        return Math.max(20, 60 - (level - 1) * 15);
+    }
 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -47,11 +51,12 @@ public record DoubleWalk() implements CustomPacketPayload {
             if (level <= 0) return;
             if (player.hurtTime > 0) return;
 
-            // 服务端冷却检查
+            // 服务端冷却检查（冷却时间随附魔等级递减）
+            final long COOLDOWN = cooldownTicks(level);
             UUID uuid = player.getUUID();
             long gameTime = player.level().getGameTime();
             Long lastUsed = COOLDOWNS.get(uuid);
-            if (lastUsed != null && gameTime - lastUsed < COOLDOWN_TICKS) {
+            if (lastUsed != null && gameTime - lastUsed < COOLDOWN) {
                 return;
             }
 
@@ -149,7 +154,7 @@ public record DoubleWalk() implements CustomPacketPayload {
             // 闪现成功后更新冷却
             COOLDOWNS.put(uuid, gameTime);
             // 通知客户端开始冷却倒数
-            PacketDistributor.sendToPlayer(player, new DoubleWalkCooldownS2CPacket(gameTime + COOLDOWN_TICKS));
+            PacketDistributor.sendToPlayer(player, new DoubleWalkCooldownS2CPacket(gameTime + COOLDOWN));
         });
     }
 }

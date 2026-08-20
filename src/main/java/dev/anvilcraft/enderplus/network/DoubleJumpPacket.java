@@ -33,10 +33,9 @@ public record DoubleJumpPacket() implements CustomPacketPayload {
             ItemStack boots = player.getInventory().armor.getFirst();//获取靴子
             if (boots.isEmpty()) return;//确认靴子
             if (boots.getEnchantmentLevel(doubleJump) <= 0) return;//确认附魔
-            Boolean canJump = boots.get(DataComponents.CAN_DOUBLE_JUMP);//确认状态
-            //player.displayClientMessage(Component.literal(DataComponents.CAN_DOUBLE_JUMP.toString()+":" + canJump), false);
-            if (Boolean.FALSE.equals(canJump)) return;
-            boots.set(DataComponents.CAN_DOUBLE_JUMP.get(), false);//改变靴子的状态
+            Integer canJump = boots.get(DataComponents.DOUBLE_JUMP_LEFT.get());//确认剩余跳跃次数
+            if (canJump == null || canJump <= 0) return;
+            boots.set(DataComponents.DOUBLE_JUMP_LEFT.get(), canJump - 1);//消耗一次跳跃次数
             //player.displayClientMessage(Component.literal("Double jump activated!"), false);
             var motion = player.getDeltaMovement();//获取玩家的移动速度
             player.setDeltaMovement(motion.x, 0.42F, motion.z);

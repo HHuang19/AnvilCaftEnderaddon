@@ -1,14 +1,15 @@
 ---
 navigation:
-  title: "雷跃"
+  title: "二段跳"
   icon: "minecraft:enchanted_book"
 ---
 
-# 雷跃（Double Jump）
+# 二段跳（Double Jump）
 
 - 适用于 **靴子**
 - 具有该附魔时，在空中再次 **按下跳跃键** 可以进行 **二次跳跃**
-- 最高等级：I
+- 最高等级：2
+- 每一级增加一段朓，如果超过2级则无效。
 
 # 说明
 

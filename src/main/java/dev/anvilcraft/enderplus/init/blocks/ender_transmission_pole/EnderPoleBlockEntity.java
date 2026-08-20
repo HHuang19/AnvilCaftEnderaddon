@@ -1,5 +1,6 @@
 package dev.anvilcraft.enderplus.init.blocks.ender_transmission_pole;
 
+import dev.anvilcraft.enderplus.AnvilcraftEnderplus;
 import dev.anvilcraft.enderplus.init.AddonBlocks;
 import dev.dubhe.anvilcraft.api.power.IPowerComponent;
 import dev.dubhe.anvilcraft.api.power.IPowerConsumer;
@@ -13,30 +14,39 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 末影输电杆的方块实体 (BlockEntity)
  * <p>
  * 同时作为本地电网的 {@link PowerComponentType#TRANSMITTER} 与跨维度电力桥元件
- * （{@link EnderBridge}），把两根互相绑定的杆所在的两个电网变成"共享电网"：
+ * （{@link EnderBridge}），把互相绑定的杆所在的两个电网变成"共享电网"，从而实现
+ * **跨维度输电**：
  * <ul>
  *   <li>仍以顶部段接入本地电网，由红石信号控制开关（沿用原逻辑）；</li>
+ *   <li>一根杆可以同时绑定**多根**杆（一根杆可以无数个杆），全部绑定的杆组成**一整个电网**；</li>
  *   <li>每电网刻（{@code gridTick}）重算本地电网的纯发电/用电（排除所有桥元件与储电），
- *       并把远端电网的发电/用电镜像到本地（{@code getOutputPower()} = 远端发电，
+ *       并把所有远端电网的发电/用电求和镜像到本地（{@code getOutputPower()} = 远端发电，
  *       {@code getInputPower()} = 远端用电）。</li>
  * </ul>
  * 由此两侧电网的 {@code generate}/{@code consume} 完全相同，等效于同一电网：
  * 发送侧能发多少、接收侧就能用多少；任一侧过载则两侧同时过载。
+ * <p>
+ * 跨维度生效时，按配置 {@link dev.anvilcraft.enderplus.AddonConfig#crossDimensionChunkLoad}
+ * 强加载绑定各端所在区块，让没有玩家靠近时也能跨维度输电。
  * <p>
  * 已知限制（储电类）：电网自身的储电充放发生在 {@code flush()} 之后，无法跨维度镜像。
  * 因此单侧储电表现正确（唯一储电兜底整个共享电网的富余/缺口）；若两侧同时放置储电，
@@ -45,23 +55,13 @@ import java.util.List;
 public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
     implements EnderBridge, IPowerProducer, IPowerConsumer {
 
-    private static final String TAG_BOUND = "bound";
-    private static final String TAG_BOUND_DIMENSION = "boundDimension";
-    private static final String TAG_BOUND_X = "boundX";
-    private static final String TAG_BOUND_Y = "boundY";
-    private static final String TAG_BOUND_Z = "boundZ";
+    private static final String TAG_LINKS = "links";
+
+    /** 本杆当前绑定的所有远端杆（一根杆可以同时绑定多根杆，全部组成同一共享电网） */
+    private final List<Link> links = new ArrayList<>();
 
     @Nullable
     private PowerGrid grid = null;
-
-    /** 是否已绑定远端末影输电杆 */
-    private boolean bound = false;
-    /** 绑定目标维度 */
-    @Nullable
-    private ResourceKey<Level> boundDimension = null;
-    /** 绑定目标顶段坐标 */
-    @Nullable
-    private BlockPos boundPos = null;
 
     /** 本电网（排除桥元件与储电）的纯发电量——供远端镜像 */
     private int reportedGen = 0;
@@ -71,6 +71,10 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
     private int mirroredGen = 0;
     /** 镜像自远端电网的用电量（计入本电网，表现为耗电） */
     private int mirroredCon = 0;
+
+    /** 一条绑定关系：指向远端杆的维度与顶段坐标 */
+    private record Link(ResourceKey<Level> dimension, BlockPos pos) {
+    }
 
     public EnderPoleBlockEntity(BlockPos pos, BlockState blockState) {
         super(AddonBlocks.ENDER_POLE_ENTITY.get(), pos, blockState);
@@ -132,8 +136,8 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
      * 每电网刻（约 1 秒）由所在电网在 {@code flush()} 之后调用。
      * <p>
      * 先把本电网的纯发电/用电（排除全部桥元件与储电，避免与已施加的镜像形成反馈）
-     * 记录下来供远端镜像，再把远端电网的发电/用电镜像到本电网。
-     * 于是两侧电网的 {@code generate}/{@code consume} 完全相同（共享电网），
+     * 记录下来供远端镜像，再把**所有**远端电网的发电/用电求和镜像到本电网。
+     * 于是各侧电网的 {@code generate}/{@code consume} 完全相同（共享电网），
      * 且镜像值只依赖远端上次上报的纯值，不依赖本杆自身输出，因此不存在振荡。
      */
     @Override
@@ -152,14 +156,22 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
         this.reportedGen = gen;
         this.reportedCon = con;
 
-        EnderPoleBlockEntity remote = this.findRemote();
-        if (remote == null || !remote.isBound() || remote.getGrid() == null || remote.getGrid() == powerGrid) {
-            // 远端未加载/已解除绑定/不在电网/与本地处于同一电网 → 不镜像
+        // 把所有远端电网上报的纯发电/用电求和镜像到本电网
+        boolean anyRemote = false;
+        int mg = 0;
+        int mc = 0;
+        for (EnderPoleBlockEntity remote : this.findRemotes()) {
+            if (!remote.isBound() || remote.getGrid() == null || remote.getGrid() == powerGrid) continue;
+            anyRemote = true;
+            mg += remote.getReportedGen();
+            mc += remote.getReportedCon();
+        }
+        if (anyRemote) {
+            this.mirroredGen = mg;
+            this.mirroredCon = mc;
+        } else {
             this.mirroredGen = 0;
             this.mirroredCon = 0;
-        } else {
-            this.mirroredGen = remote.getReportedGen();
-            this.mirroredCon = remote.getReportedCon();
         }
     }
 
@@ -190,56 +202,65 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
     // ==================== 绑定管理 ====================
 
     public boolean isBound() {
-        return this.bound && this.boundDimension != null && this.boundPos != null;
+        return !this.links.isEmpty();
     }
 
     public boolean isBoundTo(ResourceKey<Level> dimension, BlockPos pos) {
-        return this.isBound() && this.boundDimension.equals(dimension) && this.boundPos.equals(pos);
-    }
-
-    @Nullable
-    public ResourceKey<Level> getBoundDimension() {
-        return this.boundDimension;
-    }
-
-    @Nullable
-    public BlockPos getBoundPos() {
-        return this.boundPos;
+        return this.links.contains(new Link(dimension, pos));
     }
 
     /**
-     * 设置绑定目标（不触碰对方；双向绑定由末影链接器保证）。
+     * 新增一条绑定（若已存在则忽略）。本杆可以同时绑定多根杆；
+     * 双向绑定由末影链接器（物品）保证，这里只负责建立单侧引用。
+     * 随后按配置强加载两端所在区块，实现跨维度输电。
      */
     public void setBound(ResourceKey<Level> dimension, BlockPos pos) {
-        this.bound = true;
-        this.boundDimension = dimension;
-        this.boundPos = pos;
+        Link link = new Link(dimension, pos);
+        if (this.links.contains(link)) return;
+        this.links.add(link);
+        this.resetBridge();
+        this.setChanged();
+        this.forceLinks();
+    }
+
+    /**
+     * 解除本杆的全部绑定；通知每个远端移除指向本杆的反向引用，并释放强加载的区块。
+     */
+    public void unbind() {
+        if (this.links.isEmpty()) return;
+        Level level = this.getLevel();
+        if (level instanceof ServerLevel serverLevel) {
+            MinecraftServer server = serverLevel.getServer();
+            for (Link link : new ArrayList<>(this.links)) {
+                // 释放本杆与远端所在区块的强加载
+                EnderPoleChunkLoader.release(server, level.dimension(), new ChunkPos(this.getBlockPos()));
+                EnderPoleChunkLoader.release(server, link.dimension(), new ChunkPos(link.pos()));
+                // 通知远端移除指向本杆的反向引用（不触发远端的整体解绑，保留其其它绑定）
+                Level targetLevel = server.getLevel(link.dimension());
+                if (targetLevel != null
+                    && targetLevel.getBlockEntity(link.pos()) instanceof EnderPoleBlockEntity partner) {
+                    partner.removeLinkTo(level.dimension(), this.getBlockPos());
+                }
+            }
+        }
+        this.links.clear();
         this.resetBridge();
         this.setChanged();
     }
 
     /**
-     * 解除绑定：若远端仍指向本杆则一并解除。
+     * 移除指向 (dimension, pos) 的单条绑定（由远端解绑时回调），并释放对应强加载。
      */
-    public void unbind() {
-        if (!this.isBound()) return;
-        ResourceKey<Level> oldDimension = this.boundDimension;
-        BlockPos oldPos = this.boundPos;
-        this.bound = false;
-        this.boundDimension = null;
-        this.boundPos = null;
+    public void removeLinkTo(ResourceKey<Level> dimension, BlockPos pos) {
+        Link link = new Link(dimension, pos);
+        if (!this.links.remove(link)) return;
+        if (this.getLevel() instanceof ServerLevel serverLevel) {
+            MinecraftServer server = serverLevel.getServer();
+            EnderPoleChunkLoader.release(server, dimension, new ChunkPos(pos));
+            EnderPoleChunkLoader.release(server, serverLevel.dimension(), new ChunkPos(this.getBlockPos()));
+        }
         this.resetBridge();
         this.setChanged();
-        // 远端若仍指向本杆，递归解除（远端解除后不再指向本杆，递归终止）
-        Level level = this.getLevel();
-        if (level instanceof ServerLevel serverLevel) {
-            Level targetLevel = serverLevel.getServer().getLevel(oldDimension);
-            if (targetLevel != null
-                && targetLevel.getBlockEntity(oldPos) instanceof EnderPoleBlockEntity partner
-                && partner.isBoundTo(level.dimension(), this.getBlockPos())) {
-                partner.unbind();
-            }
-        }
     }
 
     private void resetBridge() {
@@ -249,14 +270,29 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
         this.reportedCon = 0;
     }
 
-    /** 跨维度读取绑定的远端杆（不加载区块；远端未加载/不是杆时返回 null） */
-    @Nullable
-    private EnderPoleBlockEntity findRemote() {
-        if (!this.isBound() || !(this.getLevel() instanceof ServerLevel serverLevel)) return null;
-        Level targetLevel = serverLevel.getServer().getLevel(this.boundDimension);
-        if (targetLevel == null || !targetLevel.isLoaded(this.boundPos)) return null;
-        BlockEntity blockEntity = targetLevel.getBlockEntity(this.boundPos);
-        return blockEntity instanceof EnderPoleBlockEntity remote ? remote : null;
+    /** 重新施加当前所有绑定两端的区块强加载（用于载入存档后恢复跨维度输电）。 */
+    private void forceLinks() {
+        if (!AnvilcraftEnderplus.CONFIG.crossDimensionChunkLoad) return;
+        if (!(this.getLevel() instanceof ServerLevel serverLevel)) return;
+        MinecraftServer server = serverLevel.getServer();
+        EnderPoleChunkLoader.force(server, serverLevel.dimension(), new ChunkPos(this.getBlockPos()));
+        for (Link link : this.links) {
+            EnderPoleChunkLoader.force(server, link.dimension(), new ChunkPos(link.pos()));
+        }
+    }
+
+    /** 跨维度读取所有已加载的远端杆（不主动加载区块；远端未加载/不是杆时忽略）。 */
+    private List<EnderPoleBlockEntity> findRemotes() {
+        List<EnderPoleBlockEntity> result = new ArrayList<>();
+        if (!(this.getLevel() instanceof ServerLevel serverLevel)) return result;
+        for (Link link : this.links) {
+            Level targetLevel = serverLevel.getServer().getLevel(link.dimension());
+            if (targetLevel == null || !targetLevel.isLoaded(link.pos())) continue;
+            if (targetLevel.getBlockEntity(link.pos()) instanceof EnderPoleBlockEntity remote) {
+                result.add(remote);
+            }
+        }
+        return result;
     }
 
     // ==================== NBT 持久化 ====================
@@ -264,28 +300,33 @@ public class EnderPoleBlockEntity extends AbstractTransmissionPoleBlockEntity
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
-        if (this.isBound()) {
-            tag.putBoolean(TAG_BOUND, true);
-            tag.putString(TAG_BOUND_DIMENSION, this.boundDimension.location().toString());
-            tag.putInt(TAG_BOUND_X, this.boundPos.getX());
-            tag.putInt(TAG_BOUND_Y, this.boundPos.getY());
-            tag.putInt(TAG_BOUND_Z, this.boundPos.getZ());
+        ListTag list = new ListTag();
+        for (Link link : this.links) {
+            CompoundTag c = new CompoundTag();
+            c.putString("dimension", link.dimension().location().toString());
+            c.putInt("x", link.pos().getX());
+            c.putInt("y", link.pos().getY());
+            c.putInt("z", link.pos().getZ());
+            list.add(c);
         }
+        tag.put(TAG_LINKS, list);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
-        this.bound = false;
-        this.boundDimension = null;
-        this.boundPos = null;
+        this.links.clear();
         this.resetBridge();
-        if (tag.getBoolean(TAG_BOUND)) {
-            this.bound = true;
-            this.boundDimension = ResourceKey.create(
-                Registries.DIMENSION, ResourceLocation.parse(tag.getString(TAG_BOUND_DIMENSION))
+        ListTag list = tag.getList(TAG_LINKS, CompoundTag.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+            CompoundTag c = list.getCompound(i);
+            ResourceKey<Level> dimension = ResourceKey.create(
+                Registries.DIMENSION, ResourceLocation.parse(c.getString("dimension"))
             );
-            this.boundPos = new BlockPos(tag.getInt(TAG_BOUND_X), tag.getInt(TAG_BOUND_Y), tag.getInt(TAG_BOUND_Z));
+            BlockPos pos = new BlockPos(c.getInt("x"), c.getInt("y"), c.getInt("z"));
+            this.links.add(new Link(dimension, pos));
         }
+        // 载入后重新施加区块强加载，恢复跨维度输电
+        this.forceLinks();
     }
 }

@@ -60,7 +60,7 @@ public class EventBus {
         ensureHolders();
         ItemStack boots = player.getInventory().armor.get(0);//获取靴子
         ItemStack legs = player.getInventory().armor.get(1);//获取护腿
-        Boolean canJump = boots.get(DataComponents.CAN_DOUBLE_JUMP);//获取物品组件状态
+        Integer canJump = boots.get(DataComponents.DOUBLE_JUMP_LEFT.get());//获取剩余跳跃次数
 
         boolean isJumpDown = mc.options.keyJump.isDown();//获取空格键的状态
         boolean isBlinkDown = KeyBindings.BLINK_KEY.isDown();//获取闪现按键的状态
@@ -95,7 +95,7 @@ public class EventBus {
         }
     }
 
-    private static void TryJump(boolean isJumpDown, boolean isOnFly, ItemStack boots, LocalPlayer player, Boolean canJump) { //尝试进行跳跃
+    private static void TryJump(boolean isJumpDown, boolean isOnFly, ItemStack boots, LocalPlayer player, Integer canJump) { //尝试进行跳跃
         if (isJumpDown && !prevJumpDown) {//按下空格且上一秒空格键没有按下时
             //player.displayClientMessage(Component.literal("Double jump activated!"),false);
 
@@ -105,11 +105,14 @@ public class EventBus {
                     && !player.isSwimming()//玩家没在潜水
                     && boots.getEnchantmentLevel(doubleJumpHolder) > 0//具有附魔
             ) {
-                //player.displayClientMessage(Component.literal(DataComponents.CAN_DOUBLE_JUMP.toString()+":" + canJump), false);
-                if (canJump != null && canJump && !wasOnGround && !wasOnFly) {
+                //player.displayClientMessage(Component.literal(DataComponents.DOUBLE_JUMP_LEFT.toString()+":" + canJump), false);
+                if (canJump != null && canJump > 0 && !wasOnGround && !wasOnFly) {
                     var motion = player.getDeltaMovement();
                     player.setDeltaMovement(motion.x, 0.42F, motion.z);
                     player.fallDistance = 0;
+
+                    // 客户端预测：消耗一次跳跃次数
+                    boots.set(DataComponents.DOUBLE_JUMP_LEFT.get(), canJump - 1);
 
                     //通知服务端
                     PacketDistributor.sendToServer(new DoubleJumpPacket());
@@ -118,11 +121,15 @@ public class EventBus {
         }
     }
 
-    private static void ResetDoubleJump(boolean isOnGround, ItemStack boots, Boolean canJump){
-        if (isOnGround && (canJump == null || !canJump)) {
+    private static void ResetDoubleJump(boolean isOnGround, ItemStack boots, Integer canJump){
+        if (isOnGround) {
             if (!boots.isEmpty() && boots.getEnchantmentLevel(doubleJumpHolder) > 0) {
-                // 通知服务端重置
-                PacketDistributor.sendToServer(new ResetDoubleJumpPacket());
+                int target = boots.getEnchantmentLevel(doubleJumpHolder);
+                // 数量不足或为空时，重置剩余跳跃次数（每级一次）并通知服务端
+                if (canJump == null || canJump != target) {
+                    boots.set(DataComponents.DOUBLE_JUMP_LEFT.get(), target);
+                    PacketDistributor.sendToServer(new ResetDoubleJumpPacket());
+                }
             }
         }
     }

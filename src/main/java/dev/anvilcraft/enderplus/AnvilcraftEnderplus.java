@@ -63,7 +63,7 @@ public class AnvilcraftEnderplus {
             event.accept(AddonItems.ENDER_AMULET_PILLAR_ITEM);
             event.accept(AddonItems.ENDER_AMULET);
 
-            // 雷跃附魔书（可附魔在靴子上，实现二段跳）
+            // 二段跳附魔书（可附魔在靴子上，每一级增加一段跳）
             var holders = event.getParameters().holders();
             var enchantments = holders.lookupOrThrow(Registries.ENCHANTMENT);
 
@@ -71,7 +71,7 @@ public class AnvilcraftEnderplus {
             jumpBook.enchant(enchantments.getOrThrow(EnchantmentEffects.DOUBLE_JUMP), 1);
             event.accept(jumpBook);
 
-            // 雷行附魔书（可附魔在护腿上，实现闪现）
+            // 闪现附魔书（可附魔在护腿上，实现突进）
             ItemStack walkBook = new ItemStack(Items.ENCHANTED_BOOK);
             walkBook.enchant(enchantments.getOrThrow(EnchantmentEffects.DOUBLE_WALK), 1);
             event.accept(walkBook);

@@ -23,9 +23,9 @@ public class DataComponents {//用于注册数据类型
                     .persistent(BlockState.CODEC)
                     .build());
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> CAN_DOUBLE_JUMP =
-            DATA_COMPONENTS.register("can_double_jump", () -> DataComponentType.<Boolean>builder()
-                    .persistent(Codec.BOOL)
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> DOUBLE_JUMP_LEFT =
+            DATA_COMPONENTS.register("double_jump_left", () -> DataComponentType.<Integer>builder()
+                    .persistent(Codec.INT)
                     .build());
 
     // 末影输电杆物品：记录绑定目标杆的维度与顶段坐标（相同目标可堆叠）

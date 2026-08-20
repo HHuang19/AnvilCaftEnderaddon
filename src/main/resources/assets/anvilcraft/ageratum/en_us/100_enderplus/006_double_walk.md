@@ -1,15 +1,16 @@
 ---
 navigation:
-  title: "Double Walk"
+  title: "Blink"
   icon: "minecraft:enchanted_book"
 ---
 
-# Double Walk
+# Blink
 
 - Applies to **leggings**
 - While enchanted, press the **blink key** (default **V**, rebindable in Controls) to **dash 5 blocks** forward
 - Cannot pass through walls
-- Max level: I
+- Max level: 3
+- Each level reduces the cooldown; levels above 3 have no effect
 
 # Notes
 
