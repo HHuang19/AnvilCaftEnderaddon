@@ -2,7 +2,6 @@
 navigation:
   title: "末影护符"
   icon: "anvilcraft_portable_addon:ender_amulet"
-  position: 1
 items:
   - anvilcraft_portable_addon:ender_amulet
 ---

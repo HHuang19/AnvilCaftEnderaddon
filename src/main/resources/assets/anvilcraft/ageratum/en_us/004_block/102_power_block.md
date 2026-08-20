@@ -2,7 +2,6 @@
 navigation:
   title: "Power Block"
   icon: "anvilcraft_portable_addon:power_block"
-  position: 0
 items:
   - anvilcraft_portable_addon:power_block
 ---
@@ -22,7 +21,7 @@ items:
 - Connection range: 2 blocks around itself
 
 <tip>
-A single Power Block outputs little power; it suits small machines. For more power, see the power chapter of the main manual
+A single Power Block outputs little power; it suits small machines. For more power, see the Power System chapter of this manual
 </tip>
 
 # Other

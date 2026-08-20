@@ -2,7 +2,6 @@
 navigation:
   title: "雷跃"
   icon: "minecraft:enchanted_book"
-  position: 0
 ---
 
 # 雷跃（Double Jump）

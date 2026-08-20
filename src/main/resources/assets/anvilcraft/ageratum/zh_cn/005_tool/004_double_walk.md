@@ -2,7 +2,6 @@
 navigation:
   title: "雷行"
   icon: "minecraft:enchanted_book"
-  position: 1
 ---
 
 # 雷行（Double Walk）

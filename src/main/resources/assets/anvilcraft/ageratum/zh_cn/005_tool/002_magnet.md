@@ -2,7 +2,6 @@
 navigation:
   title: "磁铁魔棒"
   icon: "anvilcraft_portable_addon:magnet"
-  position: 0
 items:
   - anvilcraft_portable_addon:magnet
 ---

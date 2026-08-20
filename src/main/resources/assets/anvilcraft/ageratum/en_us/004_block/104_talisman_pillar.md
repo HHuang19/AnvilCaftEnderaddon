@@ -2,7 +2,6 @@
 navigation:
   title: "Ender Talisman Pillar"
   icon: "anvilcraft_portable_addon:ender_amulet_pillar"
-  position: 0
 items:
   - anvilcraft_portable_addon:ender_amulet_pillar
 ---
@@ -27,8 +26,7 @@ The Ender Talisman Pillar is a **2-block-tall** multi-part block used to display
 # Working with the Ender Amulet
 
 The <ref item="anvilcraft_portable_addon:ender_amulet"/> can be bound to the pillar. Once bound,
-the effects of the charms hung on the pillar are "transferred" to the player carrying that amulet
-(see the next page).
+the effects of the charms hung on the pillar are "transferred" to the player carrying that amulet.
 
 # Other
 

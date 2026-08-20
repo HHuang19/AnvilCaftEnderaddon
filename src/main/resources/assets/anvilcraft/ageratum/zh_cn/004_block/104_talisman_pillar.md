@@ -2,7 +2,6 @@
 navigation:
   title: "末影护符柱"
   icon: "anvilcraft_portable_addon:ender_amulet_pillar"
-  position: 0
 items:
   - anvilcraft_portable_addon:ender_amulet_pillar
 ---
@@ -27,7 +26,7 @@ items:
 # 与末影护符联动
 
 <ref item="anvilcraft_portable_addon:ender_amulet"/> 可以绑定到护符柱上。绑定后，
-柱子挂载的护符效果会"传递"给携带该护符的玩家（见下一页）。
+柱子挂载的护符效果会"传递"给携带该护符的玩家。
 
 # 其他
 

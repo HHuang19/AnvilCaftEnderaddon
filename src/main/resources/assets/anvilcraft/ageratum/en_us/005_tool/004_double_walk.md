@@ -2,7 +2,6 @@
 navigation:
   title: "Double Walk"
   icon: "minecraft:enchanted_book"
-  position: 1
 ---
 
 # Double Walk

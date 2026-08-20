@@ -2,7 +2,6 @@
 navigation:
   title: "Double Jump"
   icon: "minecraft:enchanted_book"
-  position: 0
 ---
 
 # Double Jump

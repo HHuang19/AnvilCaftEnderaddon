@@ -2,7 +2,6 @@
 navigation:
   title: "能量方块"
   icon: "anvilcraft_portable_addon:power_block"
-  position: 0
 items:
   - anvilcraft_portable_addon:power_block
 ---
@@ -22,7 +21,7 @@ items:
 - 接入范围：以自身为中心 2 格
 
 <tip>
-单个能量方块功率较低，适合为小型机器供电；需要更大功率请参考本体手册的发电章节
+单个能量方块功率较低，适合为小型机器供电；需要更大功率请参考本手册《电力系统》章节
 </tip>
 
 # 其他

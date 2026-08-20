@@ -2,7 +2,6 @@
 navigation:
   title: "Ender Pole"
   icon: "anvilcraft_portable_addon:enderpole"
-  position: 1
 items:
   - anvilcraft_portable_addon:enderpole
 ---

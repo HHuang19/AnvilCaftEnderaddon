@@ -2,7 +2,6 @@
 navigation:
   title: "Ender Amulet"
   icon: "anvilcraft_portable_addon:ender_amulet"
-  position: 1
 items:
   - anvilcraft_portable_addon:ender_amulet
 ---

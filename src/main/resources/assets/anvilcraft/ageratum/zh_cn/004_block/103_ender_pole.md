@@ -2,7 +2,6 @@
 navigation:
   title: "末影输电杆"
   icon: "anvilcraft_portable_addon:enderpole"
-  position: 1
 items:
   - anvilcraft_portable_addon:enderpole
 ---
