@@ -40,5 +40,5 @@
     "anvilcraft_enderplus.configuration.section.anvilcraft.enderplus.common.toml": "末影+通用配置",
     "anvilcraft_enderplus.configuration.section.anvilcraft.enderplus.common.toml.title": "末影+通用配置",
     "anvilcraft_enderplus.configuration.title": "末影+配置",
-    "tooltip.anvilcraft_enderplus.pole.link_count": "已连接其他末影输电杆：%s 根"
+    "tooltip.anvilcraft_enderplus.pole.link_count": "已连接末影输电杆数量：%s 根"
 }
