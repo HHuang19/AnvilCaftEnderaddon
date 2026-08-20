@@ -1,6 +1,6 @@
 ---
 navigation:
-  title: "末影+"
+  title: "铁砧工艺：末影+"
   icon: "anvilcraft_enderplus:magnet"
 ---
 

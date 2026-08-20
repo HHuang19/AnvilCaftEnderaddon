@@ -1,5 +1,10 @@
 # Repository Agent Instructions
 
+## 模组名称
+
+- 本模组的正式全称为 **铁砧工艺：末影+ / Anvilcraft: Ender+**。
+- 以后如需称呼本模组，一律使用「铁砧工艺：末影+」或「Anvilcraft: Ender+」。
+
 ## Source Lookup
 
 - Use the IntelliJ IDEA MCP tools together with the `workspace-agent-bridge` skill as the primary way to search,
