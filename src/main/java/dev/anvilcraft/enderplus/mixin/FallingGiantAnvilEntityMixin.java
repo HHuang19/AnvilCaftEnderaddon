@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Portal;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.portal.DimensionTransition;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -62,17 +63,26 @@ public abstract class FallingGiantAnvilEntityMixin extends Entity {
         if (this.isOnPortalCooldown()) return;
         if (!this.canUsePortal(false)) return;
 
-        // 扫描碰撞盒（含下一 tick 下落的 1 格扩展）覆盖的末地传送门方块
-        // （只处理末地门，不影响下界门等其它行为）
-        AABB box = this.getBoundingBox().expandTowards(0.0, -1.0, 0.0);
+        // 用当前位置现算 3x3 结构盒（与 anvilcraft makeBoundingBox 一致：盒底 = position.y-1、
+        // 盒顶 = position.y+2，覆盖整座 3x3 巨砧结构），并向下扩展 1 格覆盖下一 tick 落点。
+        // 不用 getBoundingBox()：巨砧实体每 tick 自写移动（move 不刷新 boundingBox 字段），
+        // 缓存的盒可能陈旧。
+        Vec3 pos = this.position();
+        AABB box = new AABB(
+            pos.x - 1.5, pos.y - 1.0, pos.z - 1.5,
+            pos.x + 1.5, pos.y + 2.0, pos.z + 1.5
+        ).expandTowards(0.0, -1.0, 0.0);
         BlockPos min = BlockPos.containing(box.minX + 1.0E-7, box.minY + 1.0E-7, box.minZ + 1.0E-7);
         BlockPos max = BlockPos.containing(box.maxX - 1.0E-7, box.maxY - 1.0E-7, box.maxZ - 1.0E-7);
-        for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
-            BlockState state = serverLevel.getBlockState(pos);
+        for (BlockPos portalPos : BlockPos.betweenClosed(min, max)) {
+            BlockState state = serverLevel.getBlockState(portalPos);
             if (!state.is(Blocks.END_PORTAL)) continue;
             if (!(state.getBlock() instanceof Portal portal)) continue;
 
-            DimensionTransition transition = portal.getPortalDestination(serverLevel, this, pos);
+            DimensionTransition transition = portal.getPortalDestination(serverLevel, this, portalPos);
+            // 前置检查失败（目标维度不可达/不可跨维）不置冷却：不发布事件就不掷转化骰，
+            // 每 tick 重试无害（如服务器正在加载目标维度）。只在真正发布过门事件后置冷却，
+            // 防止实体在门格内停留多个 tick 时重复发布事件导致 20/40/40 被多次采样。
             if (transition == null) return;
             ServerLevel destination = transition.newLevel();
             if (!serverLevel.getServer().isLevelEnabled(destination)) return;
@@ -80,13 +90,14 @@ public abstract class FallingGiantAnvilEntityMixin extends Entity {
                 && !this.canChangeDimensions(serverLevel, destination)) {
                 return;
             }
-            // 复刻 anvilcraft 的过门事件（概率转化监听器在此修改 blockState），随后真传
+            // 复刻 anvilcraft 的过门事件（概率转化监听器在此修改 blockState），随后真传。
+            // 事件已发布即视为一次完整的过门尝试：置冷却避免重复采样。
+            this.setPortalCooldown();
             EntityThroughPortalEvent event = new EntityThroughPortalEvent(
                 serverLevel, this, PortalType.END_PORTAL);
             if (NeoForge.EVENT_BUS.post(event).isCanceled()) return;
             // 触发真实跨维度传送，随后截断本 tick 剩余落地逻辑
             this.changeDimension(transition);
-            this.setPortalCooldown();
             ci.cancel();
             return;
         }

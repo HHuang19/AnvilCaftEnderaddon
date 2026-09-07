@@ -2,13 +2,11 @@ package dev.anvilcraft.enderplus.init.blocks.giant_spectral_anvil;
 
 import com.google.common.collect.ImmutableList;
 import dev.anvilcraft.enderplus.init.AddonEntities;
-import dev.dubhe.anvilcraft.AnvilCraft;
 import dev.dubhe.anvilcraft.api.event.AnvilEvent;
 import dev.dubhe.anvilcraft.block.SpectralAnvilBlock;
 import dev.dubhe.anvilcraft.entity.FallingGiantAnvilEntity;
 import dev.dubhe.anvilcraft.init.ModSoundEvents;
 import dev.dubhe.anvilcraft.init.block.ModBlockTags;
-import dev.dubhe.anvilcraft.init.entity.ModDamageTypes;
 import it.unimi.dsi.fastutil.floats.FloatArraySet;
 import it.unimi.dsi.fastutil.floats.FloatArrays;
 import it.unimi.dsi.fastutil.floats.FloatSet;
@@ -18,7 +16,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.FallingBlockEntity;
@@ -52,7 +49,8 @@ import java.util.List;
  * <ul>
  *     <li>等效下落高度固定为 10 格（需求：下落高度变 10 格），
  *         落地事件一律按 10 格巨型铁砧处理；</li>
- *     <li>不穿过实体：实体碰撞会挡住虚影并触发落地（砸伤实体后消失）。</li>
+ *     <li>伤害不在此处直接结算：与真实巨型铁砧一致，交由 GiantOnLand 事件链
+ *         （anvilcraft 冲击监听等）按等效 10 格距离结算，避免双重伤害。</li>
  * </ul>
  */
 public class FallingGiantSpectralAnvilEntity extends FallingGiantAnvilEntity {
@@ -132,7 +130,12 @@ public class FallingGiantSpectralAnvilEntity extends FallingGiantAnvilEntity {
     @Override
     protected void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        this.isGhostEntity = compound.contains("Ghost") && compound.getBoolean("Ghost");
+        // 与 anvilcraft 幻灵一致：缺省视为幻灵（本实体只会以虚影身份存在）
+        if (compound.contains("Ghost")) {
+            this.isGhostEntity = compound.getBoolean("Ghost");
+        } else {
+            this.isGhostEntity = true;
+        }
     }
 
     @Override
@@ -163,7 +166,8 @@ public class FallingGiantSpectralAnvilEntity extends FallingGiantAnvilEntity {
     }
 
     /**
-     * 虚影落地：等效 10 格巨型铁砧砸下。不铺块，只触发事件链/配方/冲击/伤害后消失。
+     * 虚影落地：等效 10 格巨型铁砧砸下。不铺块、不直接结算伤害，
+     * 只触发事件链（anvilcraft 冲击监听按等效距离造成伤害）后消失。
      */
     private void land() {
         Level level = this.level();
@@ -171,8 +175,6 @@ public class FallingGiantSpectralAnvilEntity extends FallingGiantAnvilEntity {
         BlockPos mainPos = this.blockPosition();
         BlockPos belowPos = mainPos.below();
         float fallDistance = EQUIVALENT_FALL_DISTANCE;
-
-        this.hurtEntitiesInside();
 
         NeoForge.EVENT_BUS.post(new AnvilEvent.GiantOnLand(level, mainPos, this, fallDistance));
         for (int dx = -1; dx <= 1; dx++) {
@@ -194,21 +196,6 @@ public class FallingGiantSpectralAnvilEntity extends FallingGiantAnvilEntity {
             level.random.nextFloat() * 0.1F + 0.55F
         );
         this.discard();
-    }
-
-    /**
-     * 伤害虚影体积内的生物，与真实巨型铁砧（{@link GiantAnvilBlock#falling} 语义）一致。
-     */
-    private void hurtEntitiesInside() {
-        Level level = this.level();
-        if (level.isClientSide) return;
-        float damage = AnvilCraft.CONFIG.giantAnvilFallDamageMax;
-        var predicate = EntitySelector.NO_CREATIVE_OR_SPECTATOR.and(EntitySelector.LIVING_ENTITY_STILL_ALIVE);
-        List<Entity> entities = level.getEntities(this, this.getBoundingBox(), predicate);
-        for (Entity entity : entities) {
-            entity.hurt(ModDamageTypes.fallingGiantAnvil(level, this), damage);
-            NeoForge.EVENT_BUS.post(new AnvilEvent.HurtEntity(this, this.getOnPos(), level, entity, damage));
-        }
     }
 
     @Override
