@@ -38,7 +38,7 @@ public class AddonBlocks {
     public static final DeferredHolder<Block, EnderAmuletPillarBlock> ENDER_AMULET_PILLAR =
             BLOCKS.register("ender_amulet_pillar", EnderAmuletPillarBlock::new);
 
-    /** 巨型幻灵砧：属性与巨型铁砧一致，可被活塞推动。 */
+    /** 巨型幻灵砧：属性与巨型铁砧一致（含 pushReaction=BLOCK——与巨型铁砧相同，均不可被活塞推动）。 */
     public static final DeferredHolder<Block, GiantSpectralAnvilBlock> GIANT_SPECTRAL_ANVIL =
             BLOCKS.register(
                 "giant_spectral_anvil",

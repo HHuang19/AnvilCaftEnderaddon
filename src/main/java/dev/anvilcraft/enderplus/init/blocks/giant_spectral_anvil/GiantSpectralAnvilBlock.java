@@ -24,8 +24,8 @@ import net.minecraft.world.phys.AABB;
 /**
  * 巨型幻灵砧：3x3x3 巨型多方块砧，模型/材质直接复用巨型铁砧（anvilcraft:giant_anvil）。
  *
- * <p>继承巨型铁砧的全部语义：铁砧 GUI 与铁砧配方、可被活塞推动、不可含水、
- * 落地铺 27 部件。区别：
+ * <p>继承巨型铁砧的全部语义：铁砧 GUI 与铁砧配方、不可被活塞推动（与巨型铁砧相同，
+ * pushReaction=BLOCK）、不可含水、落地铺 27 部件。区别：
  * <ul>
  *     <li>固定不落：覆写 {@link #tick}，永不因失去支撑而自落；</li>
  *     <li>悬浮检测：锚格（BOTTOM_CENTER）上方第 3 格（结构正上方第一格，与巨型铁砧自落检测
