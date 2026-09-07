@@ -3,6 +3,8 @@ package dev.anvilcraft.enderplus.init;
 import dev.anvilcraft.enderplus.AnvilcraftEnderplus;
 import dev.anvilcraft.enderplus.init.items.EnderAmuletItem;
 import dev.anvilcraft.enderplus.init.items.EnderPoleItem;
+import dev.dubhe.anvilcraft.block.item.SimpleMultiPartBlockItem;
+import dev.dubhe.anvilcraft.block.state.Cube3x3PartHalf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.BlockTags;
@@ -122,6 +124,19 @@ public class AddonItems {
     // ==========================================
     public static final DeferredItem<EnderAmuletItem> ENDER_AMULET =
             ITEMS.register("ender_amulet", EnderAmuletItem::new);
+
+    // ==========================================
+    // 6. 巨型幻灵砧物品 (GIANT_SPECTRAL_ANVIL)
+    // 3x3x3 巨型多方块砧；放置语义与巨型铁砧一致（SimpleMultiPartBlockItem）
+    // ==========================================
+    public static final DeferredItem<BlockItem> GIANT_SPECTRAL_ANVIL =
+            ITEMS.register(
+                "giant_spectral_anvil",
+                () -> new SimpleMultiPartBlockItem<Cube3x3PartHalf>(
+                    AddonBlocks.GIANT_SPECTRAL_ANVIL.get(),
+                    new Item.Properties().stacksTo(16)
+                )
+            );
 
 
     /**

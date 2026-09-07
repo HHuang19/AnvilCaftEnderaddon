@@ -11,6 +11,7 @@
     "block.anvilcraft_enderplus.power_block": "能量方块",
     "block.anvilcraft_enderplus.ender_pole": "末影输电杆",
     "block.anvilcraft_enderplus.ender_amulet_pillar": "末影护符柱",
+    "block.anvilcraft_enderplus.giant_spectral_anvil": "巨型幻灵砧",
     "message.anvilcraft_enderplus.pole.bound": "已记录绑定目标：(%s, %s, %s)",
     "message.anvilcraft_enderplus.pole.linked": "已链接末影输电杆",
     "message.anvilcraft_enderplus.pole.unbound": "已解除末影输电杆链接",

@@ -3,8 +3,10 @@ package dev.anvilcraft.enderplus.client;
 import dev.anvilcraft.enderplus.AnvilcraftEnderplus;
 import dev.anvilcraft.enderplus.client.tooltip.EnderPoleTooltipProvider;
 import dev.anvilcraft.enderplus.init.AddonBlocks;
+import dev.anvilcraft.enderplus.init.AddonEntities;
 import dev.dubhe.anvilcraft.api.tooltip.HudTooltipManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.FallingBlockRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -38,6 +40,11 @@ public class AnvilcraftEnderplusClient {
         event.registerBlockEntityRenderer(
             AddonBlocks.ENDER_AMULET_PILLAR_ENTITY.get(),
             EnderAmuletPillarBlockEntityRenderer::new
+        );
+        // 巨型幻灵砧虚影：与巨型铁砧一致，使用原版下落方块渲染器
+        event.registerEntityRenderer(
+            AddonEntities.FALLING_GIANT_SPECTRAL_ANVIL.get(),
+            FallingBlockRenderer::new
         );
     }
 }

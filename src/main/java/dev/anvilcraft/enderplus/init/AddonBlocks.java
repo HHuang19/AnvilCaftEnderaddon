@@ -7,9 +7,14 @@ import dev.anvilcraft.enderplus.init.blocks.ender_amulet_pillar.EnderAmuletPilla
 import dev.anvilcraft.enderplus.init.blocks.ender_amulet_pillar.EnderAmuletPillarBlockEntity;
 import dev.anvilcraft.enderplus.init.blocks.ender_transmission_pole.EnderPoleBlock;
 import dev.anvilcraft.enderplus.init.blocks.ender_transmission_pole.EnderPoleBlockEntity;
+import dev.anvilcraft.enderplus.init.blocks.giant_spectral_anvil.GiantSpectralAnvilBlock;
+import dev.dubhe.anvilcraft.block.GiantAnvilBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -32,6 +37,19 @@ public class AddonBlocks {
 
     public static final DeferredHolder<Block, EnderAmuletPillarBlock> ENDER_AMULET_PILLAR =
             BLOCKS.register("ender_amulet_pillar", EnderAmuletPillarBlock::new);
+
+    /** 巨型幻灵砧：属性与巨型铁砧一致，可被活塞推动。 */
+    public static final DeferredHolder<Block, GiantSpectralAnvilBlock> GIANT_SPECTRAL_ANVIL =
+            BLOCKS.register(
+                "giant_spectral_anvil",
+                () -> new GiantSpectralAnvilBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.ANVIL)
+                    .noOcclusion()
+                    .isValidSpawn(Blocks::never)
+                    .strength(4.0F)
+                    .sound(GiantAnvilBlock.SOUND_TYPE)
+                    .explosionResistance(1200)
+                    .isViewBlocking((state, level, pos) -> false))
+            );
 
     // 4. 注册对应的方块实体
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PowerBlockEntity>> APOWER_BE =

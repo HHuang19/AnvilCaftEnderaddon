@@ -4,6 +4,7 @@
   "package": "dev.anvilcraft.enderplus.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "FallingGiantAnvilEntityMixin"
   ],
   "client": [
   ],

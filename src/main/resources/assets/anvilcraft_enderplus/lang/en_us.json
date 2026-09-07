@@ -11,6 +11,7 @@
   "block.anvilcraft_enderplus.power_block": "Power Block",
   "block.anvilcraft_enderplus.ender_pole": "Ender Pole",
   "block.anvilcraft_enderplus.ender_amulet_pillar": "Ender Talisman Pillar",
+  "block.anvilcraft_enderplus.giant_spectral_anvil": "Giant Spectral Anvil",
   "message.anvilcraft_enderplus.pole.bound": "Recorded bind target: (%s, %s, %s)",
   "message.anvilcraft_enderplus.pole.linked": "Ender poles linked",
   "message.anvilcraft_enderplus.pole.unbound": "Ender pole unlinked",

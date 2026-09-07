@@ -7,6 +7,7 @@ import dev.anvilcraft.enderplus.data.AddonDatagen;
 import dev.anvilcraft.enderplus.enchantment.EnchantmentEffects;
 import dev.anvilcraft.enderplus.init.AddonAmuletTypes;
 import dev.anvilcraft.enderplus.init.AddonBlocks;
+import dev.anvilcraft.enderplus.init.AddonEntities;
 import dev.anvilcraft.enderplus.init.AddonItemGroups;
 import dev.anvilcraft.enderplus.init.AddonItems;
 import dev.anvilcraft.enderplus.init.DataComponents;
@@ -42,6 +43,7 @@ public class AnvilcraftEnderplus {
         DataComponents.register(modEventBus);
         Packets.init(modEventBus);
         AddonBlocks.register(modEventBus);
+        AddonEntities.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
 
@@ -62,6 +64,7 @@ public class AnvilcraftEnderplus {
             event.accept(AddonItems.ENDERPOLE_ITEM);
             event.accept(AddonItems.ENDER_AMULET_PILLAR_ITEM);
             event.accept(AddonItems.ENDER_AMULET);
+            event.accept(AddonItems.GIANT_SPECTRAL_ANVIL);
         }
     }
 
